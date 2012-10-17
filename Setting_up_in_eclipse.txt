@@ -1,0 +1,66 @@
+To set the project up in Eclipse with Git: 
+
+	1) Open Eclipse
+	2) download and install the Git plugin 
+	3) Click on the Open Perspective button in the top right corner
+	4) (may not apply to newest version) Select Other... from the dropdown menu
+	5) In the window that opens choose Git Repository Exploring
+	6) (If you DIDN'T clone the repository to your computer already) In the Git Repositories frame on the left click the 2nd button in the 2nd group of buttons it has the tool tip, "Clone Git Repository and add the clone to this view"
+	7) Paste this URL "https://github.com/andrewm921/DataMap.git"  into the URI field that is in the Clone Git Repository window in Eclipse.
+	8) Add any of your information that isn't there already.
+	9) Click Next
+	10) Select the branches you want to checkout, I suggest only master.
+	11) Click Next
+	12) Click Finish
+	=> ( above list adapted from Patrick Juola's site: http://evllabs.com/jgaap/w/index.php/New_Developers#Setting_up_the_Environment)	
+	
+	(**NOTE: if the above doesn't work, let me know. I didn't do it this way, but I have in the past. It should work, but might not.)
+	
+	Then, you should see "DataMap" under "Git Repositories".
+	-> Right-click "DataMap", click on "Import Projects".
+	-> Check the button "Import existing projects"
+	-> Click "next"
+	-> Check the "DataMap" Project in the projects window
+	-> Make sure to check "Add project to working sets"
+	-> Then click finish.
+	
+	If you click "PyDev" in the top right, you should see the project listed under your projects.
+	
+	-> Now, right-click on "DataMap"
+	-> Go to "Team", then click "Switch to"
+	-> Click "new branch"
+	-> Make sure the source ref is: /refs/remotes/origin/master
+			-> It's important that you choose the master with "remote" in the name, or you'll make your branch from your local machine rather than the remote server.
+	-> name your branch.
+	-> under "Pull strategy", check "merge" (read on to see why).
+	
+	There is a "master" branch -> Only _good_ code should be merged here - this should be reserved for "finalized" code
+	There is a "dev" branch -> Almost good, but could possibly break code should be merged here (development code)
+	Each one of us should create a branch - I created "awem" (my initials). I'll do my work here. You all can check out that branch if you like, to see what I've been doing / what I have. 
+	
+	
+	-> Everyone has a "local" repository. When you "commit" changes, your commits go here (on your machine). 
+	-> Then, when you "push to upstream", all of your "commit"ed changes get pushed to the remote repository - on Github's servers.
+			-> changes are only to the branch you are working in.
+	-> To receive changes that someone pushed to a branch (e.g. I pushed to 'dev', and you want those changes in your personal branch:
+			-> You can do one of two things:
+					a) 
+						1) "Fetch from upstream"
+						2) "Merge..."
+						-> first you "fetch" the changes from the remote server, and then you merge
+					b) (if configured to "merge" when you pull)
+						2) "Pull"
+							-> when you set up your branch, it asks you what action you want for "pull". If you choose "merge" (the default), it will "Fetch" and "Merge" all at once. 
+	-> To make your changes in your branch show up in another branch (dev, master, etc.), you must:
+			1) commit your changes to your local repository
+			2) Push your changes from your local repository to the remote repository
+			3) "Switch to" the branch you want the changes to go to
+			4) "Fetch from upstream" and then "Merge", OR "Pull". 
+
+	There is of course much more (a good part of which I am unaware of), but this should get everyone started. 
+	
+	** "Rebase" is, from what I've read, something you should NEVER do.**
+	
+	- Andrew 
+	
+	

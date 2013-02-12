@@ -1,0 +1,92 @@
+<ipfixConfig>
+
+	<observer id="1">
+		<interface>wlan0</interface>
+		<pcap_filter>ip</pcap_filter>
+		<next>2</next>
+	</observer>
+
+	<packetAggregator id="2">
+		<rule>
+			<flowKey>
+				<ieName>sourceIPv4Address</ieName>
+			</flowKey>
+			<flowKey>
+				<ieName>destinationIPv4Address</ieName>
+			</flowKey>
+			<flowKey>
+				<ieName>protocolIdentifier</ieName>
+			</flowKey>
+			<flowKey>
+				<ieName>sourceTransportPort</ieName>
+			</flowKey>
+			<flowKey>
+				<ieName>destinationTransportPort</ieName>
+			</flowKey>
+			<nonFlowKey>
+				<ieName>flowStartMilliSeconds</ieName>
+			</nonFlowKey>
+			<nonFlowKey>
+				<ieName>flowEndMilliSeconds</ieName>
+			</nonFlowKey>
+			<nonFlowKey>
+				<ieName>octetDeltaCount</ieName>
+			</nonFlowKey>
+			<nonFlowKey>
+				<ieName>packetDeltaCount</ieName>
+			</nonFlowKey>
+			<nonFlowKey>
+				<ieName>tcpControlBits</ieName>
+			</nonFlowKey>
+		</rule>
+		<pollInterval unit="msec">100</pollInterval>
+		<next>3</next>
+	</packetAggregator>
+
+	<anonRecord id="3">
+		<anonField>
+			<anonIE>
+				<ieName>sourceIPv4Address</ieName>
+			</anonIE>
+			<anonMethod>CryptoPan</anonMethod>
+			<anonParam>0xB92A327F6AF02694A10ABF7FC8A4CFE8AEB8A4A14325EC1E7A3D1E648D50E260</anonParam>
+		</anonField>
+		<anonField>
+			<anonIE>
+				<ieName>destinationIPv4Address</ieName>
+			</anonIE>
+			<anonMethod>CryptoPan</anonMethod>
+			<anonParam>0xB92A327F6AF02694A10ABF7FC8A4CFE8AEB8A4A14325EC1E7A3D1E648D50E260</anonParam>
+		</anonField>
+		<next>4</next>
+	</anonRecord>
+
+	<ipfixDbWriter id="4">
+		<host>129.25.35.152</host>
+		<port>3306</port>
+		<dbname>network_data</dbname>
+		<username>datamap13</username>
+		<password>seniordesign13</password>
+		<bufferrecords>1</bufferrecords>
+		<nodeId>Alix3</nodeId>
+		<location>
+			<lattitude>39963299</lattitude>
+			<longitude>-75191189</longitude>
+		</location>
+		<columns>
+			<name>firstSwitched</name>
+			<name>firstSwitchedMillis</name>
+			<name>lastSwitched</name>
+			<name>lastSwitchedMillis</name>
+			<name>srcIP</name>
+			<name>dstIP</name>
+			<name>srcPort</name>
+			<name>dstPort</name>
+			<name>proto</name>
+			<name>pckts</name>
+			<name>bytes</name>
+			<name>tcpControlBits</name>
+		</columns>
+	</ipfixDbWriter>
+
+</ipfixConfig>

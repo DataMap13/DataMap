@@ -1,0 +1,67 @@
+<ipfixConfig>
+
+	<observer id="1">
+		<interface>wlan0</interface>
+		<pcap_filter>ip</pcap_filter>
+		<next>2</next>
+	</observer>
+
+	<packetAggregator id="2">
+		<rule>
+			<flowKey>
+				<ieName>sourceIPv4Address</ieName>
+			</flowKey>
+			<flowKey>
+				<ieName>destinationIPv4Address</ieName>
+			</flowKey>
+			<flowKey>
+				<ieName>protocolIdentifier</ieName>
+			</flowKey>
+			<flowKey>
+				<ieName>sourceTransportPort</ieName>
+			</flowKey>
+			<flowKey>
+				<ieName>destinationTransportPort</ieName>
+			</flowKey>
+			<nonFlowKey>
+				<ieName>flowStartMilliSeconds</ieName>
+			</nonFlowKey>
+			<nonFlowKey>
+				<ieName>flowEndMilliSeconds</ieName>
+			</nonFlowKey>
+			<nonFlowKey>
+				<ieName>octetDeltaCount</ieName>
+			</nonFlowKey>
+			<nonFlowKey>
+				<ieName>packetDeltaCount</ieName>
+			</nonFlowKey>
+			<nonFlowKey>
+				<ieName>tcpControlBits</ieName>
+			</nonFlowKey>
+		</rule>
+		<next>3</next>
+	</packetAggregator>
+
+<!--	<anonRecord id="3">
+		<anonField>
+			<anonIE>
+				<ieName>sourceIPv4Address</ieName>
+			</anonIE>
+			<anonMethod>CryptoPan</anonMethod>
+			<anonParam>0xB92A327F6AF02694A10ABF7FC8A4CFE8AEB8A4A14325EC1E7A3D1E648D50E260</anonParam>
+		</anonField>
+		<anonField>
+			<anonIE>
+				<ieName>destinationIPv4Address</ieName>
+			</anonIE>
+			<anonMethod>CryptoPan</anonMethod>
+			<anonParam>0xB92A327F6AF02694A10ABF7FC8A4CFE8AEB8A4A14325EC1E7A3D1E648D50E260</anonParam>
+		</anonField>
+		<next>4</next>
+	</anonRecord> -->
+
+	<ipfixPrinter id="3">
+		<outputType>line</outputType>
+	</ipfixPrinter>
+
+</ipfixConfig>

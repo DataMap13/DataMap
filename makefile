@@ -1,5 +1,5 @@
 build:
-	cd vermont; cmake .
+	cd vermont; cmake -D SUPPORT_MYSQL=ON .
 	make -C vermont
 
 clean:

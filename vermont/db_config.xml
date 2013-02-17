@@ -68,10 +68,10 @@
 		<username>datamap13</username>
 		<password>seniordesign13</password>
 		<bufferrecords>1</bufferrecords>
-		<nodeId>Alix3</nodeId>
+		<nodeId></nodeId>
 		<location>
-			<lattitude>39963299</lattitude>
-			<longitude>-75191189</longitude>
+			<lattitude></lattitude>
+			<longitude></longitude>
 		</location>
 		<columns>
 			<name>firstSwitched</name>

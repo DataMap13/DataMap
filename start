@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo ./vermont/vermont -f vermont/db_config.xml
+

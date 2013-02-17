@@ -1,0 +1,21 @@
+#!/usr/bin/python
+
+import os
+
+print "\nWelcome to the DataMap Configuration Script!\nPress Enter to Begin..."
+raw_input()
+
+print "Node ID: "
+nodeId = raw_input()
+
+print "\nLattitude: "
+lattitude = raw_input()
+
+print "\nLongitude: "
+longitude = raw_input()
+
+print("\n\n")
+
+os.system("sed -i -e 's/<nodeId>.*<\/nodeId>/<nodeId>" + nodeId + "<\/nodeId>/' vermont/db_config.xml")
+os.system("sed -i -e 's/<lattitude>.*<\/lattitude>/<lattitude>" + lattitude + "<\/lattitude>/' vermont/db_config.xml")
+os.system("sed -i -e 's/<longitude>.*<\/longitude>/<longitude>" + longitude + "<\/longitude>/' vermont/db_config.xml")

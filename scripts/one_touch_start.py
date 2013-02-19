@@ -71,13 +71,8 @@ def get_stdin( std_in ):
 
 def do_something( node_list, cmd ):
 	print "Lets do work..."
-	for item in node_list:
-		ip = item.split(',')[1].strip()
-		
-		if item.split(',')[0] == '2':
-			full_cmd = "ssh alix2@" + ip + ' \'' + cmd + '\''
-		else:
-			full_cmd = "ssh alix@" + ip + ' \'' + cmd + '\''
+	for ip in node_list:
+		full_cmd = "ssh alix@" + ip + ' \'' + cmd + '\''
 		print "running command", full_cmd,"on: alix", item.split(',')[0]
 		try:
 			print "herehased"

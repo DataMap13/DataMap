@@ -24,5 +24,5 @@ port = 21210
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect( (server, port) )
 count = 0
-sock.sendall("3, " + addr)
+sock.sendall(addr)
 sock.close()

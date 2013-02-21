@@ -201,7 +201,7 @@ void IpfixDbWriter::processDataDataRecord(const IpfixRecord::SourceID& sourceID,
 
 	// write to db if maxInserts is reached
 	if(numberOfInserts == maxInserts) {
-		msg(MSG_DEBUG, "IpfixDbWriter: Writing buffered records to database with statement %s", rowString.c_str());
+		msg(MSG_DEBUG, "IpfixDbWriter: Writing buffered records to database with statement %s", insertStatement.str().c_str());
 		writeToDb();
 		numberOfInserts = 0;
 	}

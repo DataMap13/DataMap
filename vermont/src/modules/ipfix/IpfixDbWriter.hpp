@@ -36,9 +36,9 @@
 #include <sstream>
 
 #define EXPORTERID 0
-#define NODEIDID 1
-#define LATTITUDEID 2
-#define LONGITUDEID 3
+#define NODEIDID -1
+#define LATTITUDEID -2
+#define LONGITUDEID -3
 
 /**
  * IpfixDbWriter powered the communication to the database server

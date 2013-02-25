@@ -62,7 +62,7 @@ IpfixDbWriterCfg::IpfixDbWriterCfg(XMLElement* elem)
 		} else if (e->matches("next")) { // ignore next
 		} else if (e->matches("nodeId")) {
 			colNames.push_back("nodeId");
-			nodeId = e->getFirstText();
+			nodeId = atoi(e->getFirstText().c_str());
 		} else if (e->matches("location")) {
 			readLocation(e);
 		} else {

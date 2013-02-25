@@ -61,8 +61,8 @@ const IpfixDbWriter::Column IpfixDbWriter::identify [] = {
 	{CN_exporterID, 	"SMALLINT(5) UNSIGNED", 	0, EXPORTERID, 0},
 	{CN_flowStartSysUpTime,	"INTEGER(10) UNSIGNED",		0, IPFIX_TYPEID_flowStartSysUpTime, 0},
 	{CN_flowEndSysUpTime,	"INTEGER(10) UNSIGNED",		0, IPFIX_TYPEID_flowEndSysUpTime, 0},
-	{CN_nodeId,	"VARCHAR(255)",	0,	NODEIDID,	0},
-	{CN_latitude,	"INT",	0,	latitudeID,	0},
+	{CN_nodeId,	"INT",	0,	NODEIDID,	0},
+	{CN_latitude,	"INT",	0,	LATITUDEID,	0},
 	{CN_longitude,	"INT",	0,	LONGITUDEID,	0},
 	{0} // last entry must be 0
 };
@@ -388,7 +388,7 @@ string& IpfixDbWriter::getInsertString(string& row, time_t& flowstartsec, const 
 		
 		if (col->ipfixId == NODEIDID) {
 			rowStream << "'" << nodeId << "'";
-		}else if (col->ipfixId == latitudeID) {
+		}else if (col->ipfixId == LATITUDEID) {
 			rowStream << latitude;
 		} else if (col->ipfixId == LONGITUDEID) {
 			rowStream << longitude;
@@ -596,7 +596,7 @@ void IpfixDbWriter::onDataRecord(IpfixDataRecord* record)
 IpfixDbWriter::IpfixDbWriter(const string& hostname, const string& dbname,
 				const string& username, const string& password,
 				unsigned port, uint32_t observationDomainId, unsigned maxStatements,
-				const string nodeId_in, const uint32_t latitude_in, const uint32_t longitude_in,
+				const int32_t nodeId_in, const int32_t latitude_in, const int32_t longitude_in,
 				const vector<string>& columns)
 	: currentExporter(NULL), numberOfInserts(0), maxInserts(maxStatements),
 	dbHost(hostname), dbName(dbname), dbUser(username), dbPassword(password), dbPort(port), conn(0)

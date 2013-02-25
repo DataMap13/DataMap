@@ -66,7 +66,7 @@
 #define CN_flowEndSysUpTime	"flowEndSysUpTime"
 
 #define CN_nodeId "nodeId"
-#define CN_lattitude "lattitude"
+#define CN_latitude "latitude"
 #define CN_longitude "longitude"
 
 #endif

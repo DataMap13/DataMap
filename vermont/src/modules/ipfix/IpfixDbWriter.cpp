@@ -62,7 +62,7 @@ const IpfixDbWriter::Column IpfixDbWriter::identify [] = {
 	{CN_flowStartSysUpTime,	"INTEGER(10) UNSIGNED",		0, IPFIX_TYPEID_flowStartSysUpTime, 0},
 	{CN_flowEndSysUpTime,	"INTEGER(10) UNSIGNED",		0, IPFIX_TYPEID_flowEndSysUpTime, 0},
 	{CN_nodeId,	"VARCHAR(255)",	0,	NODEIDID,	0},
-	{CN_lattitude,	"INT",	0,	LATTITUDEID,	0},
+	{CN_latitude,	"INT",	0,	latitudeID,	0},
 	{CN_longitude,	"INT",	0,	LONGITUDEID,	0},
 	{0} // last entry must be 0
 };
@@ -388,8 +388,8 @@ string& IpfixDbWriter::getInsertString(string& row, time_t& flowstartsec, const 
 		
 		if (col->ipfixId == NODEIDID) {
 			rowStream << "'" << nodeId << "'";
-		}else if (col->ipfixId == LATTITUDEID) {
-			rowStream << lattitude;
+		}else if (col->ipfixId == latitudeID) {
+			rowStream << latitude;
 		} else if (col->ipfixId == LONGITUDEID) {
 			rowStream << longitude;
 		} else {
@@ -596,7 +596,7 @@ void IpfixDbWriter::onDataRecord(IpfixDataRecord* record)
 IpfixDbWriter::IpfixDbWriter(const string& hostname, const string& dbname,
 				const string& username, const string& password,
 				unsigned port, uint32_t observationDomainId, unsigned maxStatements,
-				const string nodeId_in, const uint32_t lattitude_in, const uint32_t longitude_in,
+				const string nodeId_in, const uint32_t latitude_in, const uint32_t longitude_in,
 				const vector<string>& columns)
 	: currentExporter(NULL), numberOfInserts(0), maxInserts(maxStatements),
 	dbHost(hostname), dbName(dbname), dbUser(username), dbPassword(password), dbPort(port), conn(0)
@@ -604,7 +604,7 @@ IpfixDbWriter::IpfixDbWriter(const string& hostname, const string& dbname,
 	int i;
 	
 	nodeId = nodeId_in;
-	lattitude = lattitude_in;
+	latitude = latitude_in;
 	longitude = longitude_in;
 
 	// set default source id

@@ -70,7 +70,7 @@
 		<bufferrecords>1</bufferrecords>
 		<nodeId></nodeId>
 		<location>
-			<lattitude></lattitude>
+			<latitude></latitude>
 			<longitude></longitude>
 		</location>
 		<columns>

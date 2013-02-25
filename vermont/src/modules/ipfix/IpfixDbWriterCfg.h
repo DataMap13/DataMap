@@ -56,7 +56,7 @@ protected:
 	uint32_t observationDomainId;	/**< default observation domain id (overrides the one received in the records */
 	vector<string> colNames; /**< column names */
 	string nodeId;
-	uint32_t lattitude, longitude;
+	uint32_t latitude, longitude;
 
 	void readColumns(XMLElement* elem);
 	void readLocation(XMLElement* elem);

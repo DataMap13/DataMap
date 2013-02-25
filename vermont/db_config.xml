@@ -83,7 +83,7 @@
 			<name>srcPort</name>
 			<name>dstPort</name>
 			<name>proto</name>
-			<name>pckts</name>
+			<name>pkts</name>
 			<name>bytes</name>
 			<name>tcpControlBits</name>
 		</columns>

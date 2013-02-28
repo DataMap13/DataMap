@@ -18,3 +18,5 @@ src/tests/ipfixlolib/example_code_2
 src/tests/ipfixlolib/example_code
 # ignore vermont generated files
 sensor_output.xml
+# ignore vermont db_config.xml file
+db_config.xml

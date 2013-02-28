@@ -117,7 +117,7 @@ def get_freq_to_listen_on( interface ):
 	grepped_wifi = ''
 	for i in range(0,3):
 		grepped_wifi += subprocess.check_output( shell_cmds, stderr = subprocess.STDOUT, shell = True )[26:] + "--\n" # run 3 times to make sure we get all networks, and cut off the "[sudo] enter password" (or something similar) line that is in the first 26 characters of the string, also, add the delimeter that grep adds.
-		time.sleep(.1)
+		time.sleep(.04)
 	grepped_wifi = grepped_wifi[:-3]
 	print  grepped_wifi	
 	choices = extract_signal_levels_and_frequencies(grepped_wifi)
@@ -138,9 +138,26 @@ def set_iface_to_freq_with_strongest_signal( interface ):
 	# freq_to_listen_on = get_freq_to_listen_on()
 	# set its mode to 'Managed' to allow scanning network, but first we must add a 'G' to the frequency so that iwconfig knows its x.yz gigahertz
 	the_freq = freq_to_listen_on + "G"
-	subprocess.call(["sudo","iwconfig",interface,"freq",the_freq])
-	subprocess.call(["sudo","iwconfig",interface,"ESSID","drexelguest"])
-	print "interface '" + interface + "' set to frequency: '" + the_freq
+	subprocess.call(["sudo","iwconfig",interface,"freq","2.417G"])#the_freq])
+	attempts = 0
+	while attempts < 500:
+		subprocess.call(["sudo","iwconfig",interface,"ESSID","drexelguest"])
+		success = subprocess.Popen(["iwconfig"],stdout=subprocess.PIPE)	
+		result = str(success.communicate())
+		#print result
+		if "Not-Associated" in result:
+			time.sleep(.040)
+			#print "!!!!!!!!!!!!!!!! Not Associated !!!!!!!!!!!!!!!!!!!"
+		else:
+			print "interface '" + interface + "' set to frequency: '" + the_freq
+			break
+		attempts += 1
+
+	if attempts >= 500:		
+		print "ERROR: Could not associate with an access point!!!"
+		### todo: We should make it choose a different frequency!!!
+		exit()
+
 
 
 command = "echo s3tt0p! | sudo -S ifconfig wlan0 up"

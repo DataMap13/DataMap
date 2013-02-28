@@ -138,7 +138,7 @@ def set_iface_to_freq_with_strongest_signal( interface ):
 	# freq_to_listen_on = get_freq_to_listen_on()
 	# set its mode to 'Managed' to allow scanning network, but first we must add a 'G' to the frequency so that iwconfig knows its x.yz gigahertz
 	the_freq = freq_to_listen_on + "G"
-	subprocess.call(["sudo","iwconfig",interface,"freq","2.417G"])#the_freq])
+	subprocess.call(["sudo","iwconfig",interface,"freq",the_freq])
 	attempts = 0
 	while attempts < 500:
 		subprocess.call(["sudo","iwconfig",interface,"ESSID","drexelguest"])

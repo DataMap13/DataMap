@@ -1,4 +1,4 @@
 #!/bin/bash
 
-sudo ./vermont/vermont -f vermont/db_config.xml
+echo s3tt0p! | sudo -S ./vermont/vermont -f vermont/db_config.xml
 

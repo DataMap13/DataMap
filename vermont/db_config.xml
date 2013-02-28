@@ -70,8 +70,8 @@
 		<bufferrecords>1</bufferrecords>
 		<nodeId>Alix2</nodeId>
 		<location>
-			<lattitude>0</lattitude>
-			<longitude>0</longitude>
+			<latitude></latitude>
+			<longitude></longitude>
 		</location>
 		<columns>
 			<name>firstSwitched</name>
@@ -83,7 +83,7 @@
 			<name>srcPort</name>
 			<name>dstPort</name>
 			<name>proto</name>
-			<name>pckts</name>
+			<name>pkts</name>
 			<name>bytes</name>
 			<name>tcpControlBits</name>
 		</columns>

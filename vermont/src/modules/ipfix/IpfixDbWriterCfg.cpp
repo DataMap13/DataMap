@@ -62,7 +62,7 @@ IpfixDbWriterCfg::IpfixDbWriterCfg(XMLElement* elem)
 		} else if (e->matches("next")) { // ignore next
 		} else if (e->matches("nodeId")) {
 			colNames.push_back("nodeId");
-			nodeId = e->getFirstText();
+			nodeId = atoi(e->getFirstText().c_str());
 		} else if (e->matches("location")) {
 			readLocation(e);
 		} else {
@@ -100,9 +100,9 @@ void IpfixDbWriterCfg::readLocation(XMLElement* elem) {
 			it++) {
 		XMLElement* e = *it;
 		
-		if (e->matches("lattitude")) {
-			colNames.push_back("lattitude");
-			lattitude = atoi((e->getFirstText()).c_str());
+		if (e->matches("latitude")) {
+			colNames.push_back("latitude");
+			latitude = atoi((e->getFirstText()).c_str());
 		} else if (e->matches("longitude")) {
 			colNames.push_back("longitude");
 			longitude = atoi((e->getFirstText()).c_str());
@@ -122,7 +122,7 @@ IpfixDbWriterCfg::~IpfixDbWriterCfg()
 IpfixDbWriter* IpfixDbWriterCfg::createInstance()
 {
     instance = new IpfixDbWriter(hostname, dbname, user, password, port, observationDomainId,
-		bufferRecords, nodeId, lattitude, longitude, colNames);
+		bufferRecords, nodeId, latitude, longitude, colNames);
     return instance;
 }
 

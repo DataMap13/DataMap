@@ -36,9 +36,9 @@
 #include <sstream>
 
 #define EXPORTERID 0
-#define NODEIDID 1
-#define LATTITUDEID 2
-#define LONGITUDEID 3
+#define NODEIDID 1001
+#define LATITUDEID 1002
+#define LONGITUDEID 1003
 
 /**
  * IpfixDbWriter powered the communication to the database server
@@ -51,7 +51,7 @@ class IpfixDbWriter
 		IpfixDbWriter(const string& hostname, const string& dbname,
 				const string& username, const string& password,
 				unsigned port, uint32_t observationDomainId, unsigned maxStatements,
-				const string nodeId, const uint32_t lattitude, const uint32_t longitude,
+				const int32_t nodeId, const int32_t latitude, const int32_t longitude,
 				const vector<string>& columns);
 		~IpfixDbWriter();
 
@@ -128,8 +128,8 @@ class IpfixDbWriter
 
 		const static Column identify[];
 		
-		string nodeId;
-		int32_t lattitude;
+		int32_t nodeId;
+		int32_t latitude;
 		int32_t longitude;
 		
 };

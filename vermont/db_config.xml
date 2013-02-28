@@ -68,9 +68,9 @@
 		<username>datamap13</username>
 		<password>seniordesign13</password>
 		<bufferrecords>1</bufferrecords>
-		<nodeId>Alix4</nodeId>
+		<nodeId>Alix2</nodeId>
 		<location>
-			<lattitude></lattitude>
+			<latitude></latitude>
 			<longitude></longitude>
 		</location>
 		<columns>
@@ -83,7 +83,7 @@
 			<name>srcPort</name>
 			<name>dstPort</name>
 			<name>proto</name>
-			<name>pckts</name>
+			<name>pkts</name>
 			<name>bytes</name>
 			<name>tcpControlBits</name>
 		</columns>

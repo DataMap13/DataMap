@@ -73,9 +73,9 @@ def do_something( node_list, cmd ):
 	print "Lets do work..."
 	for ip in node_list:
 		full_cmd = "ssh alix@" + ip + ' \'' + cmd + '\''
-		print "running command", full_cmd,"on: alix", item.split(',')[0]
+		#print "running command", full_cmd,"on: alix", item.split(',')[0]
 		try:
-			print "herehased"
+			#print "herehased"
 			p = subprocess.Popen(full_cmd, stderr = None, shell = True )
 			# node_list.remove( item )
 			#p.wait()
@@ -84,7 +84,7 @@ def do_something( node_list, cmd ):
 		except Exception as err:
 			print "something went wrong: ", err
 			#return node_list
-	node_list = []
+	#node_list = []
 	return node_list
 
 server = '129.25.35.152'
@@ -92,7 +92,7 @@ port = 21210
 ##########################################################
 # CHANGE THIS LINE TO THE APPROPRIATE CMD TO BE EXECUTED #
 ##########################################################
-command = 'echo s3tt0p! | sudo -S ~/DataMap/vermont/vermont -f ~/DataMap/vermont/db_config.xml'
+command = 'echo s3tt0p! | sudo -S ~/DataMap/vermont/vermont -f ~/DataMap/vermont/db_config.xml -d'
 
 server_sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 server_sock.setblocking( 0 )
@@ -126,6 +126,12 @@ try:
 					(sock_list, node_list) = receive ( i, sock_list, node_list )
 except KeyboardInterrupt:
 	print "exiting server"
+	for ip in node_list:
+		full_cmd = "ssh alix@" + str(ip) + " 'echo s3tt0p! | sudo -S killall vermont'"
+		print full_cmd
+		p = subprocess.Popen(full_cmd, stderr = None, shell = True )
+		p.wait()
+
 	for s in sock_list:
 		s.close()
 	exit(0)

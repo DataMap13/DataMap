@@ -10,6 +10,7 @@ import time
 SERVER_ADDRESS = "localhost"
 SERVER_PORT = 12345
 NODE_PORT = 12346
+CONTROL_PORT = 12347
 MAX_MSG_SIZE = 1024
 HEARTBEAT_INT = 1
 TIMEOUT = 1
@@ -18,6 +19,7 @@ TIMEOUT = 1
 ACK_MSG = "ack"
 HELLO_MSG = "hello"
 HEARTBEAT_MSG = "heartbeat"
+STATUS_MSG = "status"
 
 # System State
 collection_nodes = {}
@@ -41,6 +43,24 @@ def handle_node_message(conn,addr,msg):
 		handle_hello(conn,addr);
 	else:
 		print "Unknown Message Recieved: " + msg
+		
+# Handler for Status Request Messages
+def handle_status_request(conn):
+	global collection_nodes
+	print "Got STATUS"
+	for node in collection_nodes.keys():
+		conn.send(node + ": ")
+		if (collection_nodes[node]["connected"]):
+			conn.send(" connected ")
+		conn.send("\n")
+
+# Handler for Control Messages
+def handle_control_message(conn,addr,msg):
+	print "Got control message \"" + msg + "\" from " + str(addr[0])
+	if (msg == STATUS_MSG):
+		handle_status_request(conn)
+	else:
+		print "Unknown Control Message Recieved: " + msg
 		
 class ConnectionHandlerThread(threading.Thread):
 	def run(self):
@@ -90,11 +110,35 @@ class HeartbeatThread(threading.Thread):
 					print "Assuming disconnected"
 					collection_nodes[node]["connected"] = False
 			time.sleep(HEARTBEAT_INT)
+		
+class ControlHandlerThread(threading.Thread):
+	def run(self):
+		listen_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+		listen_socket.bind(( SERVER_ADDRESS, CONTROL_PORT ))
+		listen_socket.listen(10)
+		while True:
+			try:
+				conn,addr = listen_socket.accept()
+				time.sleep(10)
+				ready = select.select([conn],[],[],TIMEOUT)
+				if (ready[0]):
+					msg = conn.recv(MAX_MSG_SIZE)
+					handle_control_message(conn,addr,msg.strip())
+				else:
+					print "Receive Timeout"
+				conn.close()
+			except KeyboardInterrupt:
+				listen_socket.close()
+				exit(1)
+			except:
+				print str(sys.exc_info())
 			
 connectionHandlerThread = ConnectionHandlerThread()
 connectionHandlerThread.start()
 heartbeatThread = HeartbeatThread()
 heartbeatThread.start()
+controlHandlerThread = ControlHandlerThread()
+controlHandlerThread.start()
 
 while True:
 	try:

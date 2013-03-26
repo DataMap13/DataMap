@@ -1,0 +1,88 @@
+#!/usr/bin/python
+
+import select;
+import socket;
+import sys;
+import threading;
+import time;
+
+# Configuration
+SERVER_ADDRESS = "localhost"
+SERVER_PORT = 12345
+NODE_ADDRESS = "localhost"
+NODE_PORT = 12346
+MAX_MSG_SIZE = 1024
+HEARTBEAT_INT = 1
+TIMEOUT = 1
+
+# Constants
+ACK_MSG = "ack"
+HELLO_MSG = "hello"
+HEARTBEAT_MSG = "heartbeat"
+
+# Node State
+last_heartbeat = 0
+
+def handle_heartbeat(conn):
+	global last_heartbeat
+	print "Handling Heartbeat"
+	last_heartbeat = time.time()
+	conn.send(ACK_MSG)
+
+def handle_server_message(conn,addr,msg):
+	print "Handling \"" + msg + "\" from " + str(addr)
+	if (msg == HEARTBEAT_MSG):
+		handle_heartbeat(conn)
+	else:
+		print "Unexpected message from central server: " + msg
+
+class HelloThread(threading.Thread):
+	def run(self):
+		global last_heartbeat
+		while True:
+			print "Last Heartbeat: " + str(last_heartbeat)
+			print "Current Time: " + str(time.time())
+			if (time.time()-last_heartbeat > 5*HEARTBEAT_INT):
+				try:
+					client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+					client_socket.connect((SERVER_ADDRESS,SERVER_PORT))
+					client_socket.send(HELLO_MSG)
+					ready = select.select([client_socket],[],[],TIMEOUT)
+					if (ready[0]):
+						msg = client_socket.recv(MAX_MSG_SIZE)
+						client_socket.close()
+						if (msg == ACK_MSG):
+							last_heartbeat = time.time()
+							print "Successfully connected to central server, waiting for instructions"
+						else:
+							print "Unexpected reply from central server: " + msg
+					else:
+						print "Hello message to central server timed out"
+				except KeyboardInterrupt:
+					exit(1);
+				except:
+					print "Failed to connect to central server: " + str(sys.exc_info())
+			time.sleep(HEARTBEAT_INT)
+			
+helloThread = HelloThread()
+helloThread.start()
+		
+# Listen for Messages from the Central Server
+listen_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+listen_socket.bind(( NODE_ADDRESS, NODE_PORT ))
+listen_socket.listen(10)
+while True:
+	try:
+		conn,addr = listen_socket.accept()
+		ready = select.select([conn],[],[])
+		if (ready[0]):
+			msg = conn.recv(MAX_MSG_SIZE)
+			print "Recieved \"" + msg + "\" from " + str(addr)
+			handle_server_message(conn,addr,msg)
+		conn.close()
+	except KeyboardInterrupt:
+		listen_socket.close()
+		exit(1)
+	except:
+		print str(sys.exc_info())
+		

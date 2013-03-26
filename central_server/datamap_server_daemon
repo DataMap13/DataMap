@@ -1,0 +1,103 @@
+#!/usr/bin/python
+
+import select
+import socket
+import sys
+import threading
+import time
+
+# Configuration
+SERVER_ADDRESS = "localhost"
+SERVER_PORT = 12345
+NODE_PORT = 12346
+MAX_MSG_SIZE = 1024
+HEARTBEAT_INT = 1
+TIMEOUT = 1
+
+# Constants
+ACK_MSG = "ack"
+HELLO_MSG = "hello"
+HEARTBEAT_MSG = "heartbeat"
+
+# System State
+collection_nodes = {}
+
+# Handler for Hello Messages from Collection Nodes
+def handle_hello(conn,addr):
+	global collection_nodes
+	print "Got HELLO from " + str(addr[0])
+	if (not addr[0] in collection_nodes):
+		collection_nodes[addr[0]] = {
+			"last_heartbeat" : time.time(),
+			"connected" : True
+		}
+	collection_nodes[addr[0]]["connected"] = True
+	conn.send(ACK_MSG)
+
+# Handler for Messages from Collection Nodes
+def handle_node_message(conn,addr,msg):
+	print "Got message \"" + msg + "\" from " + str(addr[0])
+	if (msg == HELLO_MSG):
+		handle_hello(conn,addr);
+	else:
+		print "Unknown Message Recieved: " + msg
+		
+class ConnectionHandlerThread(threading.Thread):
+	def run(self):
+		listen_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+		listen_socket.bind(( SERVER_ADDRESS, SERVER_PORT ))
+		listen_socket.listen(10)
+		while True:
+			try:
+				conn,addr = listen_socket.accept()
+				ready = select.select([conn],[],[],TIMEOUT)
+				if (ready[0]):
+					msg = conn.recv(MAX_MSG_SIZE)
+					handle_node_message(conn,addr,msg)
+				else:
+					print "Receive Timeout"
+				conn.close()
+			except KeyboardInterrupt:
+				listen_socket.close()
+				exit(1)
+			except:
+				print str(sys.exc_info())
+				
+class HeartbeatThread(threading.Thread):
+	def run(self):
+		global collection_nodes
+		while True:
+			print "Collection Nodes: " + str(collection_nodes)
+			heartbeat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			for node in collection_nodes.keys():
+				if (collection_nodes[node]["connected"]):
+					try:
+						heartbeat_socket.connect((node,NODE_PORT))
+						heartbeat_socket.send(HEARTBEAT_MSG)
+						ready = select.select([heartbeat_socket],[],[],TIMEOUT)
+						if (ready[0]):
+							msg = heartbeat_socket.recv(MAX_MSG_SIZE)
+							heartbeat_socket.close()
+							if (msg == ACK_MSG):
+								last_heartbeat = time.time()
+								continue
+							else:
+								print "Unexpected reply from colleciton node: " + msg
+						else:
+							print "Heartbeat with node " + node + " timed out"
+					except:
+						print "Heartbeat with node " + node + "failed: " + str(sys.exc_info())
+					print "Assuming disconnected"
+					collection_nodes[node]["connected"] = False
+			time.sleep(HEARTBEAT_INT)
+			
+connectionHandlerThread = ConnectionHandlerThread()
+connectionHandlerThread.start()
+heartbeatThread = HeartbeatThread()
+heartbeatThread.start()
+
+while True:
+	try:
+		time.sleep(1000)
+	except KeyboardInterrupt:
+		exit(1)

@@ -1,0 +1,24 @@
+#!/usr/bin/python
+
+import subprocess
+import sys
+
+from datamap_daemon_common import *
+
+def start():
+	subprocess.call("(./datamap_" + get_config("type") + "_daemon &)", shell=True)
+	
+def stop():
+	subprocess.call("killall datamap_" + get_config("type") + "_daemon", shell=True)
+
+for arg in sys.argv[1:]:
+	if (arg == "start"):
+		stop()
+		start()
+	elif (arg == "stop"):
+		stop()
+	elif (arg == "restart"):
+		stop()
+		start()
+	else:
+		print "Unsupported Operation: " + arg

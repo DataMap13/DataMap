@@ -2,25 +2,31 @@
 
 import subprocess
 import sys
+import time
 
 from datamap_daemon_common import *
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+if "rc" in __location__:
+	__location__ = "/etc/init.d"
 
 def start():
 	subprocess.call("(" + __location__ + "/datamap_" + get_config("type") + "_daemon &)", shell=True)
 	
 def stop():
 	subprocess.call("killall datamap_" + get_config("type") + "_daemon", shell=True)
-
-for arg in sys.argv[1:]:
-	if (arg == "start"):
-		stop()
-		start()
-	elif (arg == "stop"):
-		stop()
-	elif (arg == "restart"):
-		stop()
-		start()
-	else:
-		print "Unsupported Operation: " + arg
+	
+try:
+	for arg in sys.argv[1:]:
+		if (arg == "start"):
+			stop()
+			start()
+		elif (arg == "stop"):
+			stop()
+		elif (arg == "restart"):
+			stop()
+			start()
+		else:
+			print "Unsupported Operation: " + arg
+except:
+	print str(sys.exc_info())

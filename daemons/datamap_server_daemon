@@ -66,6 +66,7 @@ def handle_status_request(conn):
 			reply += " running "
 		reply += "\n"
 	logging.debug("Got status request. Replying with: \n" + reply)
+	conn.send(reply)
 	collection_nodes_lock.release()
 	
 # Handler for Start Command Messages

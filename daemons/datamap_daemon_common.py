@@ -1,15 +1,18 @@
 
+import os
 import select
 import socket
 import sys
 import threading
 import time
 
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
 # General Configuration
 MAX_MSG_SIZE = 1024
 HEARTBEAT_INT = 1
-TIMEOUT = 10
-CONFIG_FILE = "../.config"
+TIMEOUT = 5
+CONFIG_FILE = __location__ + "/.datamap_config"
 
 # Central Server / Collection Node Messages
 HELLO_MSG = "hello"

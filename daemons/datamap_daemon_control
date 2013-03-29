@@ -5,8 +5,10 @@ import sys
 
 from datamap_daemon_common import *
 
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
 def start():
-	subprocess.call("(./datamap_" + get_config("type") + "_daemon &)", shell=True)
+	subprocess.call("(" + __location__ + "/datamap_" + get_config("type") + "_daemon &)", shell=True)
 	
 def stop():
 	subprocess.call("killall datamap_" + get_config("type") + "_daemon", shell=True)

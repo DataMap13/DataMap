@@ -46,6 +46,7 @@ def handle_server_message(conn,addr,msg):
 	else:
 		logging.warn("Unexpected message from central server: " + msg)
 
+# Thread for sending hello messages to the central server
 class HelloThread(StoppableThread):
 	def __init__(self):
 		StoppableThread.__init__(self, self.init, self.loop, self.uninit)
@@ -73,12 +74,14 @@ class HelloThread(StoppableThread):
 	def uninit(self):
 		pass
 			
+# Start the required threads
 helloThread = HelloThread()
 helloThread.start()
 
 centralServerHandlerThread = ConnectionHandlerThread(get_config("node_addr"), int(get_config("node_port")), handle_server_message)
 centralServerHandlerThread.start()
 
+# Run forever (unless there is a keyboard interrupt)
 while True:
 	try:
 		time.sleep(1000)

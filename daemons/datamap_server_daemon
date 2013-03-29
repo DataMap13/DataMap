@@ -111,6 +111,7 @@ def handle_control_message(conn,addr,msg):
 	else:
 		logging.warn("Unknown Control Message Recieved: " + msg)
 
+# Thread for sending heartbeat messages to the collection nodes
 class HeartbeatThread(StoppableThread):
 	def __init__(self):
 		StoppableThread.__init__(self, self.init, self.loop, self.uninit)
@@ -135,6 +136,7 @@ class HeartbeatThread(StoppableThread):
 	def uninit(self):
 		pass
 
+# Start the required threads
 collectionNodeHandlerThread = ConnectionHandlerThread(get_config("server_addr"), int(get_config("server_port")), handle_node_message)
 collectionNodeHandlerThread.start()
 
@@ -144,6 +146,7 @@ controlHandlerThread.start()
 heartbeatThread = HeartbeatThread()
 heartbeatThread.start()
 
+# Run forever, unless there is a keyboard interrupt
 while True:
 	try:
 		time.sleep(1000)

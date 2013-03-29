@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import logging
 import select
 import socket
 import sys
@@ -15,7 +16,7 @@ collection_nodes_lock = threading.Lock()
 # Handler for Hello Messages from Collection Nodes
 def handle_hello(conn,addr):
 	global collection_nodes, collection_nodes_lock
-	print "Got HELLO from " + str(addr[0])
+	logging.info("Recieved hello message from " + str(addr[0]))
 	collection_nodes_lock.acquire()
 	if (not addr[0] in collection_nodes.keys()):
 		collection_nodes[addr[0]] = {
@@ -31,36 +32,40 @@ def handle_hello(conn,addr):
 # Handler for Name Exchange messages from Colleciton Nodes
 def handle_name(conn,addr,msg):
 	global collection_nodes, collection_nodes_lock
+	name = msg.replace(NAME_MSG_PREFIX, "")
 	collection_nodes_lock.acquire()
 	if (not addr[0] in collection_nodes.keys()):
+		logging.warn("Received name message \"" + name + "\" from " + addr[0] + ", but address does not exist. Sending NACK message")
 		conn.send(NACK_MSG)
 	else:
-		collection_nodes[addr[0]]["name"] = msg.replace(NAME_MSG_PREFIX, "")
+		logging.info("Received name \"" + name + "\" from " + addr[0])
+		collection_nodes[addr[0]]["name"] = name
 		conn.send(ACK_MSG)
 	collection_nodes_lock.release()
 
 # Handler for Messages from Collection Nodes
 def handle_node_message(conn,addr,msg):
-	print "Got message \"" + msg + "\" from " + str(addr[0])
+	logging.debug("Recieved message \"" + msg + "\" from " + str(addr[0]))
 	if (msg == HELLO_MSG):
 		handle_hello(conn,addr);
 	elif (msg.startswith(NAME_MSG_PREFIX)):
 		handle_name(conn,addr,msg)
 	else:
-		print "Unknown Message Recieved: " + msg
+		logging.warn("Unknown message recieved from " + str(addr[0]) + ": " + msg)
 		
 # Handler for Status Request Messages
 def handle_status_request(conn):
 	global collection_nodes, collection_nodes_lock
-	print "Got STATUS"
+	reply = ""
 	collection_nodes_lock.acquire()
 	for node in collection_nodes.keys():
-		conn.send(node + " " + collection_nodes[node]["name"] + " ")
+		reply += node + " " + collection_nodes[node]["name"] + " "
 		if (collection_nodes[node]["connected"]):
-			conn.send(" connected ")
+			reply += " connected "
 		if (collection_nodes[node]["running"]):
-			conn.send(" running ")
-		conn.send("\n")
+			reply += " running "
+		reply += "\n"
+	logging.debug("Got status request. Replying with: \n" + reply)
 	collection_nodes_lock.release()
 	
 # Handler for Start Command Messages
@@ -70,7 +75,7 @@ def handle_start_stop_command(conn,msg,prefix,node_msg):
 	collection_nodes_lock.acquire()
 	for node in nodes:
 		if not (node in collection_nodes.keys() or node == "all"):
-			print "Start command requested start of node \"" + node + "\", but it doesn't exist."
+			logging.warn("Controller requested " + node_msg + " of node \"" + node + "\", but it doesn't exist. Sending NACK.")
 			conn.send(NACK_MSG)
 			collection_nodes_lock.release()
 			return
@@ -81,12 +86,12 @@ def handle_start_stop_command(conn,msg,prefix,node_msg):
 			nodes.append(node)
 	success = True
 	for node in nodes:
-		print "Sending " + node_msg + " message to " + node
+		logging.info("Sending " + node_msg + " message to " + node)
 		result = send_and_get_ack(node, int(get_config("node_port")), node_msg)
 		if (result == None):
 			collection_nodes[node]["running"] = node_msg == START_MSG
 		else:
-			print "Starting node " + node + " failed: " + result
+			logging.error("Starting node " + node + " failed: " + result)
 			success = False
 	collection_nodes_lock.release()
 	if (success):
@@ -96,7 +101,7 @@ def handle_start_stop_command(conn,msg,prefix,node_msg):
 
 # Handler for Control Messages
 def handle_control_message(conn,addr,msg):
-	print "Got control message \"" + msg + "\" from " + str(addr[0])
+	logging.debug("Received control message \"" + msg + "\" from " + str(addr[0]))
 	if (msg == STATUS_MSG):
 		handle_status_request(conn)
 	elif (msg.startswith(START_COMMAND_PREFIX)):
@@ -104,7 +109,7 @@ def handle_control_message(conn,addr,msg):
 	elif (msg.startswith(STOP_COMMAND_PREFIX)):
 		handle_start_stop_command(conn,msg,STOP_COMMAND_PREFIX, STOP_MSG)
 	else:
-		print "Unknown Control Message Recieved: " + msg
+		logging.warn("Unknown Control Message Recieved: " + msg)
 
 class HeartbeatThread(StoppableThread):
 	def __init__(self):
@@ -113,15 +118,16 @@ class HeartbeatThread(StoppableThread):
 		pass
 	def loop(self):
 		collection_nodes_lock.acquire()
-		print "Collection Nodes: " + str(collection_nodes)
+		logging.debug("Current Collection Nodes: " + str(collection_nodes))
 		for node in collection_nodes.keys():
+			logging.debug("Sending heartbeat message to " + node)
 			if (collection_nodes[node]["connected"]):
 				result = send_and_get_ack(node, int(get_config("node_port")), HEARTBEAT_MSG)
 				if (result == None):
+					logging.debug("Heartbeat with " + node + " successful")
 					last_heartbeat = time.time()
 				else:
-					print "Heartbeat with node " + node + " failed: " + result
-					print "Assuming disconnected"
+					logging.info("Heartbeat with node " + node + " failed: " + result + ". Assuming disconnected.")
 					collection_nodes[node]["connected"] = False
 					collection_nodes[node]["running"] = False
 		collection_nodes_lock.release()

@@ -1,4 +1,5 @@
 
+import logging
 import os
 import select
 import socket
@@ -6,7 +7,11 @@ import sys
 import threading
 import time
 
+# Find the Script's Current Location
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+# Set up Logging
+logging.basicConfig(filename="/var/log/datamap.log",level=logging.DEBUG)
 
 # General Configuration
 MAX_MSG_SIZE = 1024
@@ -38,11 +43,12 @@ def get_config(name):
 	for line in lines:
 		if (line.startswith(name+"=")):
 			return line.replace(name+"=","").strip()
-	print "Failed to find configuration item \"" + name + "\""
+	logging.error("Failed to find configuration item \"" + name + "\"")
 	return None
 
 # Sends the supplied message to the specified address on the specified port. Returns None if successful, or an error message if not
 def send_and_get_ack(addr, port, msg):
+	logging.debug("Sending message \"" + msg + "\" to " + str(addr) + ":" + str(port) + " and expecting ACK.")
 	try:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.connect((addr,port))
@@ -85,7 +91,6 @@ class ConnectionHandlerThread(StoppableThread):
 	def init(self):
 		self.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		print "Binding to address " + str(self.addr) + " port " + str(self.port)
 		self.listen_socket.bind((self.addr, self.port))
 		self.listen_socket.listen(10)
 	def loop(self):
@@ -99,11 +104,10 @@ class ConnectionHandlerThread(StoppableThread):
 				msg = conn.recv(MAX_MSG_SIZE).strip()
 				self.callback(conn,addr,msg)
 			else:
-				print "Receive Timeout"
+				logging.warn("Recieve timout")
 			conn.close()
 		except:
-			print str(sys.exc_info())
+			logging.error("An error occured when recieving: " + str(sys.exc_info()))
 	def uninit(self):
-		print "Unbinding from port " + str(self.port)
 		self.listen_socket.shutdown(socket.SHUT_RDWR)
 		self.listen_socket.close()

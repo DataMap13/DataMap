@@ -6,142 +6,143 @@ import sys
 import threading
 import time
 
-# Configuration
-SERVER_ADDRESS = "localhost"
-SERVER_PORT = 12345
-NODE_PORT = 12346
-CONTROL_PORT = 12347
-MAX_MSG_SIZE = 1024
-HEARTBEAT_INT = 1
-TIMEOUT = 1
-
-# Constants
-ACK_MSG = "ack"
-HELLO_MSG = "hello"
-HEARTBEAT_MSG = "heartbeat"
-STATUS_MSG = "status"
+from datamap_daemon_common import *
 
 # System State
 collection_nodes = {}
+collection_nodes_lock = threading.Lock()
 
 # Handler for Hello Messages from Collection Nodes
 def handle_hello(conn,addr):
-	global collection_nodes
+	global collection_nodes, collection_nodes_lock
 	print "Got HELLO from " + str(addr[0])
-	if (not addr[0] in collection_nodes):
+	collection_nodes_lock.acquire()
+	if (not addr[0] in collection_nodes.keys()):
 		collection_nodes[addr[0]] = {
 			"last_heartbeat" : time.time(),
-			"connected" : True
+			"connected" : True,
+			"name" : "Unknown",
+			"running" : False
 		}
 	collection_nodes[addr[0]]["connected"] = True
+	collection_nodes_lock.release()
 	conn.send(ACK_MSG)
+
+# Handler for Name Exchange messages from Colleciton Nodes
+def handle_name(conn,addr,msg):
+	global collection_nodes, collection_nodes_lock
+	collection_nodes_lock.acquire()
+	if (not addr[0] in collection_nodes.keys()):
+		conn.send(NACK_MSG)
+	else:
+		collection_nodes[addr[0]]["name"] = msg.replace(NAME_MSG_PREFIX, "")
+		conn.send(ACK_MSG)
+	collection_nodes_lock.release()
 
 # Handler for Messages from Collection Nodes
 def handle_node_message(conn,addr,msg):
 	print "Got message \"" + msg + "\" from " + str(addr[0])
 	if (msg == HELLO_MSG):
 		handle_hello(conn,addr);
+	elif (msg.startswith(NAME_MSG_PREFIX)):
+		handle_name(conn,addr,msg)
 	else:
 		print "Unknown Message Recieved: " + msg
 		
 # Handler for Status Request Messages
 def handle_status_request(conn):
-	global collection_nodes
+	global collection_nodes, collection_nodes_lock
 	print "Got STATUS"
+	collection_nodes_lock.acquire()
 	for node in collection_nodes.keys():
-		conn.send(node + ": ")
+		conn.send(node + " " + collection_nodes[node]["name"] + " ")
 		if (collection_nodes[node]["connected"]):
 			conn.send(" connected ")
+		if (collection_nodes[node]["running"]):
+			conn.send(" running ")
 		conn.send("\n")
+	collection_nodes_lock.release()
+	
+# Handler for Start Command Messages
+def handle_start_stop_command(conn,msg,prefix,node_msg):
+	global collection_nodes, collection_nodes_lock
+	nodes = msg.replace(prefix,"").split()
+	collection_nodes_lock.acquire()
+	for node in nodes:
+		if not (node in collection_nodes.keys() or node == "all"):
+			print "Start command requested start of node \"" + node + "\", but it doesn't exist."
+			conn.send(NACK_MSG)
+			collection_nodes_lock.release()
+			return
+	if "all" in nodes:
+		while ("all" in nodes):
+			nodes.remove("all")
+		for node in collection_nodes.keys():
+			nodes.append(node)
+	success = True
+	for node in nodes:
+		print "Sending " + node_msg + " message to " + node
+		result = send_and_get_ack(node, int(get_config("node_port")), node_msg)
+		if (result == None):
+			collection_nodes[node]["running"] = node_msg == START_MSG
+		else:
+			print "Starting node " + node + " failed: " + result
+			success = False
+	collection_nodes_lock.release()
+	if (success):
+		conn.send(ACK_MSG)
+	else:
+		conn.send(NACK_MSG)
 
 # Handler for Control Messages
 def handle_control_message(conn,addr,msg):
 	print "Got control message \"" + msg + "\" from " + str(addr[0])
 	if (msg == STATUS_MSG):
 		handle_status_request(conn)
+	elif (msg.startswith(START_COMMAND_PREFIX)):
+		handle_start_stop_command(conn,msg,START_COMMAND_PREFIX, START_MSG)
+	elif (msg.startswith(STOP_COMMAND_PREFIX)):
+		handle_start_stop_command(conn,msg,STOP_COMMAND_PREFIX, STOP_MSG)
 	else:
 		print "Unknown Control Message Recieved: " + msg
-		
-class ConnectionHandlerThread(threading.Thread):
-	def run(self):
-		listen_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-		listen_socket.bind(( SERVER_ADDRESS, SERVER_PORT ))
-		listen_socket.listen(10)
-		while True:
-			try:
-				conn,addr = listen_socket.accept()
-				ready = select.select([conn],[],[],TIMEOUT)
-				if (ready[0]):
-					msg = conn.recv(MAX_MSG_SIZE)
-					handle_node_message(conn,addr,msg)
+
+class HeartbeatThread(StoppableThread):
+	def __init__(self):
+		StoppableThread.__init__(self, self.init, self.loop, self.uninit)
+	def init(self):
+		pass
+	def loop(self):
+		collection_nodes_lock.acquire()
+		print "Collection Nodes: " + str(collection_nodes)
+		for node in collection_nodes.keys():
+			if (collection_nodes[node]["connected"]):
+				result = send_and_get_ack(node, int(get_config("node_port")), HEARTBEAT_MSG)
+				if (result == None):
+					last_heartbeat = time.time()
 				else:
-					print "Receive Timeout"
-				conn.close()
-			except KeyboardInterrupt:
-				listen_socket.close()
-				exit(1)
-			except:
-				print str(sys.exc_info())
-				
-class HeartbeatThread(threading.Thread):
-	def run(self):
-		global collection_nodes
-		while True:
-			print "Collection Nodes: " + str(collection_nodes)
-			heartbeat_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			for node in collection_nodes.keys():
-				if (collection_nodes[node]["connected"]):
-					try:
-						heartbeat_socket.connect((node,NODE_PORT))
-						heartbeat_socket.send(HEARTBEAT_MSG)
-						ready = select.select([heartbeat_socket],[],[],TIMEOUT)
-						if (ready[0]):
-							msg = heartbeat_socket.recv(MAX_MSG_SIZE)
-							heartbeat_socket.close()
-							if (msg == ACK_MSG):
-								last_heartbeat = time.time()
-								continue
-							else:
-								print "Unexpected reply from colleciton node: " + msg
-						else:
-							print "Heartbeat with node " + node + " timed out"
-					except:
-						print "Heartbeat with node " + node + "failed: " + str(sys.exc_info())
+					print "Heartbeat with node " + node + " failed: " + result
 					print "Assuming disconnected"
 					collection_nodes[node]["connected"] = False
-			time.sleep(HEARTBEAT_INT)
-		
-class ControlHandlerThread(threading.Thread):
-	def run(self):
-		listen_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-		listen_socket.bind(( SERVER_ADDRESS, CONTROL_PORT ))
-		listen_socket.listen(10)
-		while True:
-			try:
-				conn,addr = listen_socket.accept()
-				time.sleep(10)
-				ready = select.select([conn],[],[],TIMEOUT)
-				if (ready[0]):
-					msg = conn.recv(MAX_MSG_SIZE)
-					handle_control_message(conn,addr,msg.strip())
-				else:
-					print "Receive Timeout"
-				conn.close()
-			except KeyboardInterrupt:
-				listen_socket.close()
-				exit(1)
-			except:
-				print str(sys.exc_info())
-			
-connectionHandlerThread = ConnectionHandlerThread()
-connectionHandlerThread.start()
+					collection_nodes[node]["running"] = False
+		collection_nodes_lock.release()
+		time.sleep(HEARTBEAT_INT)
+	def uninit(self):
+		pass
+
+collectionNodeHandlerThread = ConnectionHandlerThread(get_config("server_addr"), int(get_config("server_port")), handle_node_message)
+collectionNodeHandlerThread.start()
+
+controlHandlerThread = ConnectionHandlerThread(get_config("server_addr"), int(get_config("control_port")), handle_control_message)
+controlHandlerThread.start()
+
 heartbeatThread = HeartbeatThread()
 heartbeatThread.start()
-controlHandlerThread = ControlHandlerThread()
-controlHandlerThread.start()
 
 while True:
 	try:
 		time.sleep(1000)
 	except KeyboardInterrupt:
+		collectionNodeHandlerThread.stop()
+		controlHandlerThread.stop()
+		heartbeatThread.stop()
 		exit(1)

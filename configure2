@@ -1,0 +1,67 @@
+#!/usr/bin/python
+
+import re
+
+# Default Values
+CONFIG_FILE = ".config"
+DEFAULT_SERVER_PORT = "12345"
+DEFAULT_NODE_PORT = "12346"
+DEFAULT_CONTROL_PORT = "12347"
+
+# Regular Expressions
+ADDRESS_REGEX = "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+FLOAT_REGEX = "^[-+]?[0-9]*\.?[0-9]+$"
+PORT_REGEX = "^\d{1,5}$"
+
+# Configuration Items just for Collection Nodes
+node_items = [
+	["node_id", "Node ID", "^\\S+$", None],
+	["latitude", "Latitude", FLOAT_REGEX, None],
+	["longitude", "Longitude", FLOAT_REGEX, None],
+	["node_addr", "Collection Node Address", ADDRESS_REGEX, None],
+	["node_port", "Collection Node(s) Port", PORT_REGEX, DEFAULT_NODE_PORT],
+	["server_addr", "Central Server Address", ADDRESS_REGEX, None],
+	["server_port", "Central Server Port", PORT_REGEX, DEFAULT_SERVER_PORT],
+];
+
+# Configuration Items just for the Central Server
+server_items = [
+	["server_addr", "Central Server Address", ADDRESS_REGEX, None],
+	["server_port", "Central Server Port", PORT_REGEX, DEFAULT_SERVER_PORT],
+	["node_port", "Collection Node(s) Port", PORT_REGEX, DEFAULT_NODE_PORT],
+	["control_port", "Control Port", PORT_REGEX, DEFAULT_CONTROL_PORT],
+];
+
+# Function for Prompting the User for Input
+def prompt(prompt,regex,default):
+	while True:
+		if (default == None):
+			print "\n" + prompt + ":"
+		else:
+			print "\n" + prompt + " [" + str(default) + "]:"
+		val = raw_input()
+		if (re.match(regex,val)):
+			return val
+		elif (val == "" and default != None):
+			return default
+
+# Determine the Setup Type
+type = prompt("Is this a Collection Node (1) or a Central Server (2)?", "^1|2$", None)
+if (type == "1"):
+	items = node_items
+else:
+	items = server_items
+	
+# Get all the Config Values
+for item in items:
+	item.append(prompt(item[1], item[2], item[3]))
+	
+# Write the Config Values to the Config File
+file = open(CONFIG_FILE, "w")
+if (type == "1"):
+	file.write("type=node\n")
+else:
+	file.write("type=server\n")
+for item in items:
+	file.write(item[0] + "=" + item[4] + "\n")
+file.close()

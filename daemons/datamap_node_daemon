@@ -1,88 +1,95 @@
 #!/usr/bin/python
 
-import select;
-import socket;
-import sys;
-import threading;
-import time;
+import subprocess
+import sys
+import threading
+import time
+
+from datamap_daemon_common import *
+
+CONFIG_FILE = "../.config"
 
 # Configuration
-SERVER_ADDRESS = "localhost"
-SERVER_PORT = 12345
-NODE_ADDRESS = "localhost"
-NODE_PORT = 12346
-MAX_MSG_SIZE = 1024
-HEARTBEAT_INT = 1
-TIMEOUT = 1
-
-# Constants
-ACK_MSG = "ack"
-HELLO_MSG = "hello"
-HEARTBEAT_MSG = "heartbeat"
+node_name = "collection_node"
 
 # Node State
 last_heartbeat = 0
+last_heartbeat_lock = threading.Lock()
 
+# Handler for heartbeat messages from the central server. Tracks the time that the last heartbeat occured.
 def handle_heartbeat(conn):
 	global last_heartbeat
 	print "Handling Heartbeat"
+	last_heartbeat_lock.acquire()
 	last_heartbeat = time.time()
+	last_heartbeat_lock.release()
 	conn.send(ACK_MSG)
 
+# Handler for start messages from the central server. Starts vermont.
+def handle_start(conn):
+	print "Starting Vermont..."
+	subprocess.call("./start_vermont &", shell=True)
+	print "Vermont Started"
+	conn.send(ACK_MSG)
+
+# Handler for stop messages from the central server. Kills vermont.
+def handle_stop(conn):
+	print "Stopping Vermont..."
+	subprocess.call("./stop_vermont", shell=True)
+	print "Vermont Stopped"
+	conn.send(ACK_MSG)
+
+# Handler for all messages from the central server. Decodes the message and calls the corresponding function
 def handle_server_message(conn,addr,msg):
 	print "Handling \"" + msg + "\" from " + str(addr)
 	if (msg == HEARTBEAT_MSG):
 		handle_heartbeat(conn)
+	elif (msg == START_MSG):
+		handle_start(conn)
+	elif (msg == STOP_MSG):
+		handle_stop(conn)
 	else:
 		print "Unexpected message from central server: " + msg
 
-class HelloThread(threading.Thread):
-	def run(self):
-		global last_heartbeat
-		while True:
-			print "Last Heartbeat: " + str(last_heartbeat)
-			print "Current Time: " + str(time.time())
-			if (time.time()-last_heartbeat > 5*HEARTBEAT_INT):
-				try:
-					client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-					client_socket.connect((SERVER_ADDRESS,SERVER_PORT))
-					client_socket.send(HELLO_MSG)
-					ready = select.select([client_socket],[],[],TIMEOUT)
-					if (ready[0]):
-						msg = client_socket.recv(MAX_MSG_SIZE)
-						client_socket.close()
-						if (msg == ACK_MSG):
-							last_heartbeat = time.time()
-							print "Successfully connected to central server, waiting for instructions"
-						else:
-							print "Unexpected reply from central server: " + msg
-					else:
-						print "Hello message to central server timed out"
-				except KeyboardInterrupt:
-					exit(1);
-				except:
-					print "Failed to connect to central server: " + str(sys.exc_info())
-			time.sleep(HEARTBEAT_INT)
+class HelloThread(StoppableThread):
+	def __init__(self):
+		StoppableThread.__init__(self, self.init, self.loop, self.uninit)
+	def init(self):
+		pass
+	def loop(self):
+		global last_heartbeat, last_heartbeat_lock
+		last_heartbeat_lock.acquire()
+		print "Last Heartbeat: " + str(last_heartbeat)
+		print "Current Time: " + str(time.time())
+		if (time.time()-last_heartbeat > 5*HEARTBEAT_INT):
+			result = send_and_get_ack(get_config("server_addr"), int(get_config("server_port")), HELLO_MSG)
+			if (result == None):
+				last_heartbeat = time.time()
+				print "Successfully connected to central server"
+				result = send_and_get_ack(get_config("server_addr"), int(get_config("server_port")), NAME_MSG_PREFIX + get_config("node_id"))
+				if (result == None):
+					last_heartbeat = time.time()
+					print "Successfully exchanged name with central server"
+					print "Awaiting Instructions..."
+				else:
+					print "Name exchange with central server failed: " + result
+			else:
+				print "Hello with central server failed: " + result
+		last_heartbeat_lock.release()
+		time.sleep(HEARTBEAT_INT)
+	def uninit(self):
+		pass
 			
 helloThread = HelloThread()
 helloThread.start()
-		
-# Listen for Messages from the Central Server
-listen_socket = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-listen_socket.bind(( NODE_ADDRESS, NODE_PORT ))
-listen_socket.listen(10)
+
+centralServerHandlerThread = ConnectionHandlerThread(get_config("node_addr"), int(get_config("node_port")), handle_server_message)
+centralServerHandlerThread.start()
+
 while True:
 	try:
-		conn,addr = listen_socket.accept()
-		ready = select.select([conn],[],[])
-		if (ready[0]):
-			msg = conn.recv(MAX_MSG_SIZE)
-			print "Recieved \"" + msg + "\" from " + str(addr)
-			handle_server_message(conn,addr,msg)
-		conn.close()
+		time.sleep(1000)
 	except KeyboardInterrupt:
-		listen_socket.close()
+		helloThread.stop()
+		centralServerHandlerThread.stop()
 		exit(1)
-	except:
-		print str(sys.exc_info())
-		

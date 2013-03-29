@@ -6,16 +6,20 @@ import time
 
 from datamap_daemon_common import *
 
+# Determine the current location of the script (or use /etc/init.d if this is a copy run at startup)
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 if "rc" in __location__:
 	__location__ = "/etc/init.d"
 
+# Funciton to start the installed daemon
 def start():
 	subprocess.call("(" + __location__ + "/datamap_" + get_config("type") + "_daemon &)", shell=True)
-	
+
+# Function to stop the installed daemon
 def stop():
 	subprocess.call("killall datamap_" + get_config("type") + "_daemon", shell=True)
-	
+
+# Handle the script commands	
 try:
 	for arg in sys.argv[1:]:
 		if (arg == "start"):

@@ -65,7 +65,8 @@ def send_and_get_ack(addr, port, msg):
 			return "Timed out waiting for ack from " + addr + ":" + str(port)
 	except:
 		return "Error occured while sending message to " + addr + ": " + str(sys.exc_info())
-		
+
+# Class that allows a looped thread to be stopped. It will run the init function provided in the constructor and then enter an infinite loop running the loop function until stop() is called. Then, the uninit function will be called after the next loop iteration finishes and before the thread exits.
 class StoppableThread(threading.Thread):
 	def __init__(self, init, loop, uninit):
 		threading.Thread.__init__(self)

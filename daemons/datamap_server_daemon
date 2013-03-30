@@ -67,16 +67,21 @@ def handle_status_request(conn):
 		reply += "\n"
 	logging.debug("Got status request. Replying with: \n" + reply)
 	conn.send(reply)
-	collection_nodes_lock.release()
+	collection_nodes_lock.release()	
 	
 # Handler for Start Command Messages
-def handle_start_stop_command(conn,msg,prefix,node_msg):
+def handle_start_stop_remove_command(conn,msg,prefix,node_msg):
 	global collection_nodes, collection_nodes_lock
 	nodes = msg.replace(prefix,"").split()
 	collection_nodes_lock.acquire()
 	for node in nodes:
 		if not (node in collection_nodes.keys() or node == "all"):
 			logging.warn("Controller requested " + node_msg + " of node \"" + node + "\", but it doesn't exist. Sending NACK.")
+			conn.send(NACK_MSG)
+			collection_nodes_lock.release()
+			return
+		if node_msg == REMOVE_COMMAND_PREFIX and node != "all" and collection_nodes[node]["connected"]:
+			logging.warn("Controller requested removal of node \"" + node + "\", but it is still connected. Sending NACK.")
 			conn.send(NACK_MSG)
 			collection_nodes_lock.release()
 			return
@@ -87,28 +92,33 @@ def handle_start_stop_command(conn,msg,prefix,node_msg):
 			nodes.append(node)
 	success = True
 	for node in nodes:
-		logging.info("Sending " + node_msg + " message to " + node)
-		result = send_and_get_ack(node, int(get_config("node_port")), node_msg)
-		if (result == None):
-			collection_nodes[node]["running"] = node_msg == START_MSG
+		if node_msg == REMOVE_COMMAND_PREFIX:
+			del collection_nodes[node]
 		else:
-			logging.error("Starting node " + node + " failed: " + result)
-			success = False
+			logging.info("Sending " + node_msg + " message to " + node)
+			result = send_and_get_ack(node, int(get_config("node_port")), node_msg)
+			if (result == None):
+				collection_nodes[node]["running"] = node_msg == START_MSG
+			else:
+				logging.error("Starting node " + node + " failed: " + result)
+				success = False
 	collection_nodes_lock.release()
 	if (success):
 		conn.send(ACK_MSG)
 	else:
 		conn.send(NACK_MSG)
-
+		
 # Handler for Control Messages
 def handle_control_message(conn,addr,msg):
 	logging.debug("Received control message \"" + msg + "\" from " + str(addr[0]))
 	if (msg == STATUS_MSG):
 		handle_status_request(conn)
 	elif (msg.startswith(START_COMMAND_PREFIX)):
-		handle_start_stop_command(conn,msg,START_COMMAND_PREFIX, START_MSG)
+		handle_start_stop_remove_command(conn,msg,START_COMMAND_PREFIX,START_MSG)
 	elif (msg.startswith(STOP_COMMAND_PREFIX)):
-		handle_start_stop_command(conn,msg,STOP_COMMAND_PREFIX, STOP_MSG)
+		handle_start_stop_remove_command(conn,msg,STOP_COMMAND_PREFIX,STOP_MSG)
+	elif (msg.startswith(REMOVE_COMMAND_PREFIX)):
+		handle_start_stop_remove_command(conn,msg,REMOVE_COMMAND_PREFIX,REMOVE_COMMAND_PREFIX)
 	else:
 		logging.warn("Unknown Control Message Recieved: " + msg)
 

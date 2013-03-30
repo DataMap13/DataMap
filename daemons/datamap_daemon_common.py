@@ -5,6 +5,7 @@ import select
 import socket
 import sys
 import threading
+import traceback
 import time
 
 # Find the Script's Current Location
@@ -27,6 +28,7 @@ START_MSG = "start"
 STOP_MSG = "stop"
 
 # Central Server / Controller Messages
+REMOVE_COMMAND_PREFIX = "remove"
 START_COMMAND_PREFIX = "start"
 STOP_COMMAND_PREFIX = "stop"
 STATUS_MSG = "status"
@@ -109,6 +111,7 @@ class ConnectionHandlerThread(StoppableThread):
 			conn.close()
 		except:
 			logging.error("An error occured when recieving: " + str(sys.exc_info()))
+			traceback.print_exc()
 	def uninit(self):
 		self.listen_socket.shutdown(socket.SHUT_RDWR)
 		self.listen_socket.close()

@@ -17,11 +17,11 @@ build-server:
 	echo "Nothing to do"
 
 install:
-	ln -sf $(CURDIR)/daemons/datamap_daemon_control /etc/init.d/
-	ln -sf $(CURDIR)/daemons/datamap_daemon_common.py /etc/init.d/
-	ln -sf $(CURDIR)/daemons/datamap_$(type)_daemon /etc/init.d/
-	ln -sf $(CURDIR)/daemons/.datamap_config /etc/init.d/
-	update-rc.d datamap_daemon_control defaults 97
+	ln -sf $(CURDIR)/daemons/datamap_daemon_control /etc/init.d/datamap
+	ln -sf $(CURDIR)/daemons/datamap_daemon_common.py /bin/
+	ln -sf $(CURDIR)/daemons/datamap_$(type)_daemon /bin/
+	ln -sf $(CURDIR)/daemons/.datamap_config /bin/
+	update-rc.d datamap defaults 97
 
 clean:
 	make -C vermont clean

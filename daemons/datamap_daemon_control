@@ -13,11 +13,11 @@ if "rc" in __location__:
 
 # Funciton to start the installed daemon
 def start():
-	subprocess.call("(" + __location__ + "/datamap_" + get_config("type") + "_daemon &)", shell=True)
+	subprocess.call("datamap_" + get_config("type") + "_daemon &)", shell=True)
 
 # Function to stop the installed daemon
 def stop():
-	subprocess.call("killall datamap_" + get_config("type") + "_daemon", shell=True)
+	subprocess.call("killall datamap", shell=True)
 
 # Handle the script commands	
 try:

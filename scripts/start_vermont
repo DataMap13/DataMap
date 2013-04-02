@@ -1,0 +1,3 @@
+#!/bin/sh
+
+vermont -f /bin/vermont_config.xml

@@ -23,14 +23,14 @@ def handle_heartbeat(conn):
 # Handler for start messages from the central server. Starts vermont.
 def handle_start(conn):
 	logging.info("Received start command. Starting vermont")
-	subprocess.call("./start_vermont &", shell=True)
+	subprocess.call("start_vermont &", shell=True)
 	logging.info("Vermont started")
 	conn.send(ACK_MSG)
 
 # Handler for stop messages from the central server. Kills vermont.
 def handle_stop(conn):
 	logging.info("Received stop command. Stopping vermont")
-	subprocess.call("./stop_vermont", shell=True)
+	subprocess.call("stop_vermont", shell=True)
 	logging.info("Vermont Stopped")
 	conn.send(ACK_MSG)
 

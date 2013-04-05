@@ -29,6 +29,8 @@
 #include "common/Time.h"
 #include "HashtableBuckets.h"
 
+#include <time.h>
+
 using namespace InformationElement;
 
 const uint32_t PacketHashtable::ExpHelperTable::UNUSED = 0xFFFFFFFF;
@@ -1250,14 +1252,17 @@ void PacketHashtable::aggregateFlow(HashtableBucket* bucket, const Packet* p, bo
  * compares if given hashtable bucket data is equal with raw packet data
  * @returns true if equal, false if not equal
  */
-bool PacketHashtable::equalFlow(IpfixRecord::Data* bucket, const Packet* p)
+bool PacketHashtable::equalFlow(HashtableBucket* bucket, const Packet* p)
 {
+
+	IpfixRecord::Data* data = bucket->data.get();
+
 	for (int i=0; i<expHelperTable.noKeyFields; i++) {
 		ExpFieldData* efd = &expHelperTable.keyFields[i];
 
 		DPRINTFL(MSG_VDEBUG, "equal for i=%u, typeid=%s, length=%u, srcpointer=%X", i, efd->typeId.toString().c_str(), efd->srcLength, p->netHeader+efd->srcIndex);
 		// just compare srcLength bytes, as we still have our original packet data
-		if (memcmp(bucket+efd->dstIndex, p->netHeader+efd->srcIndex, efd->srcLength)!=0)
+		if (memcmp(data+efd->dstIndex, p->netHeader+efd->srcIndex, efd->srcLength)!=0)
 			return false;
 	}
 	return true;
@@ -1268,15 +1273,18 @@ bool PacketHashtable::equalFlow(IpfixRecord::Data* bucket, const Packet* p)
  * (for biflow aggregation)
  * @returns true if equal, false if not equal
  */
-bool PacketHashtable::equalFlowRev(IpfixRecord::Data* bucket, const Packet* p)
+bool PacketHashtable::equalFlowRev(HashtableBucket* bucket, const Packet* p)
 {
+
+	IpfixRecord::Data* data = bucket->data.get();
+	
 	for (int i=0; i<expHelperTable.noKeyFields; i++) {
 		ExpFieldData* efdsrc = &expHelperTable.keyFields[i];
 		ExpFieldData* efddst = expHelperTable.revKeyFieldMapper[i];
 
 		DPRINTFL(MSG_VDEBUG, "equalrev for i=%u, typeid=%s, length=%u, srcpointer=%X", i, efdsrc->typeId.toString().c_str(), efdsrc->srcLength, p->netHeader+efdsrc->srcIndex);
 		// just compare srcLength bytes, as we still have our original packet data
-		if (memcmp(bucket+efddst->dstIndex, p->netHeader+efdsrc->srcIndex, efdsrc->srcLength)!=0)
+		if (memcmp(data+efddst->dstIndex, p->netHeader+efdsrc->srcIndex, efdsrc->srcLength)!=0)
 			return false;
 	}
 	return true;
@@ -1403,7 +1411,10 @@ void PacketHashtable::aggregatePacket(const Packet* p)
 		req.tv_nsec = 50000000;
 		nanosleep(&req, &req);
 	}
-
+	
+	// Determine the window in which the packet was captured
+	suseconds_t window;
+	window = p->timestamp.tv_sec;
 
 	DPRINTF("PacketHashtable::aggregatePacket()");
 	updatePointers(p);
@@ -1421,7 +1432,7 @@ void PacketHashtable::aggregatePacket(const Packet* p)
 	if (bucket != 0) {
 		// This slot is already used, search spill chain for equal flow
 		while (1) {
-			if (equalFlow(bucket->data.get(), p)) {
+			if (equalFlow(bucket, p) && bucket->window == window) {
 				DPRINTF("aggregate flow in normal direction");
 				aggregateFlow(bucket, p, 0);
 				if (!bucket->forceExpiry) {
@@ -1451,7 +1462,7 @@ void PacketHashtable::aggregatePacket(const Packet* p)
 		HashtableBucket* bucket = buckets[rhash];
 
 		while (bucket!=0) {
-			if (equalFlowRev(bucket->data.get(), p)) {
+			if (equalFlowRev(bucket, p) && bucket->window == window) {
 				DPRINTF("aggregate flow in reverse direction");
 				aggregateFlow(bucket, p, 1);
 				if (!bucket->forceExpiry) {
@@ -1482,6 +1493,7 @@ void PacketHashtable::aggregatePacket(const Packet* p)
 			statEmptyBuckets--;
 		}
 		buckets[hash]->inTable = true;
+		buckets[hash]->window = window;
 
 		if (oldflowcount) {
 			DPRINTFL(MSG_VDEBUG, "oldflowcount: %u", ntohl(*oldflowcount));

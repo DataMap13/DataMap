@@ -75,9 +75,6 @@
 		</location>
 		<columns>
 			<name>firstSwitched</name>
-			<name>firstSwitchedMillis</name>
-			<name>lastSwitched</name>
-			<name>lastSwitchedMillis</name>
 			<name>srcIP</name>
 			<name>dstIP</name>
 			<name>srcPort</name>

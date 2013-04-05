@@ -42,6 +42,7 @@ public:
 	uint32_t observationDomainID;
 	BucketListElement* listNode;
 	uint32_t hash;
+	suseconds_t window;
 };
 
 

@@ -161,8 +161,8 @@ private:
 	void aggregateField(const ExpFieldData* efd, HashtableBucket* hbucket,
 					    const IpfixRecord::Data* deltaData, IpfixRecord::Data* data);
 	void aggregateFlow(HashtableBucket* bucket, const Packet* p, bool reverse);
-	bool equalFlow(IpfixRecord::Data* bucket, const Packet* p);
-	bool equalFlowRev(IpfixRecord::Data* bucket, const Packet* p);
+	bool equalFlow(HashtableBucket* bucket, const Packet* p);
+	bool equalFlowRev(HashtableBucket* bucket, const Packet* p);
 	void createMaskedField(IpfixRecord::Data* address, uint8_t imask);
 	void createMaskedFields(const Packet* p);
 	void updatePointers(const Packet* p);

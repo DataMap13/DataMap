@@ -62,16 +62,16 @@
 	</anonRecord>
 
 	<ipfixDbWriter id="4">
-		<host>129.25.35.152</host>
-		<port>3306</port>
-		<dbname>network_data</dbname>
-		<username>datamap13</username>
-		<password>seniordesign13</password>
+		<host>{server_addr}</host>
+		<port>{db_port}</port>
+		<dbname>{db_name}</dbname>
+		<username>{db_username}</username>
+		<password>{db_password}</password>
 		<bufferrecords>1</bufferrecords>
-		<nodeId>Alix2</nodeId>
+		<nodeId>{node_id}</nodeId>
 		<location>
-			<latitude></latitude>
-			<longitude></longitude>
+			<latitude>{latitude}</latitude>
+			<longitude>{longitude}</longitude>
 		</location>
 		<columns>
 			<name>firstSwitched</name>

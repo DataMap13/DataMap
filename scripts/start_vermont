@@ -1,3 +1,16 @@
-#!/bin/sh
+#!/bin/bash
+
+VERMONT_CONFIG_FILE=`pwd`/../vermont/db_config.xml
+TMP_FILE=`pwd`/../vermont/config.xml.tmp
+
+cp $VERMONT_CONFIG_FILE $TMP_FILE
+
+cat ../.config | while read line
+do
+	name=`echo $line | sed s/=.*//`
+	val=`echo $line | sed s/.*=//`
+	echo $name = $val
+	sed -i s/\{$name\}/$val/ $TMP_FILE
+done
 
 vermont -f /bin/vermont_config.xml

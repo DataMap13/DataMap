@@ -7,6 +7,8 @@ CONFIG_FILE = ".config"
 DEFAULT_SERVER_PORT = "12345"
 DEFAULT_NODE_PORT = "12346"
 DEFAULT_CONTROL_PORT = "12347"
+DEFAULT_DB_PORT = "3306"
+DEFAULT_DB_NAME = "network_data"
 
 # Regular Expressions
 ADDRESS_REGEX = "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
@@ -22,6 +24,10 @@ node_items = [
 	["node_port", "Collection Node(s) Port", PORT_REGEX, DEFAULT_NODE_PORT],
 	["server_addr", "Central Server Address", ADDRESS_REGEX, None],
 	["server_port", "Central Server Port", PORT_REGEX, DEFAULT_SERVER_PORT],
+	["db_port", "Database Port", PORT_REGEX, DEFAULT_DB_PORT],
+	["db_name", "Database Name", ".+", DEFAULT_DB_NAME],
+	["db_username", "Database Username", ".+", None],
+	["db_password", "Database Password", ".+", None]
 ];
 
 # Configuration Items just for the Central Server

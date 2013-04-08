@@ -22,7 +22,7 @@ install: $(INSTALL_TARGET)
 
 install-node: install-both
 	ln -sf $(CURDIR)/vermont/vermont /bin/
-	ln -sf $(CURDIR)/vermont/config.xml.tmp /bin/vermont_config.xml
+	ln -sf $(CURDIR)/vermont/db_config.xml /bin/vermont_config.xml
 	ln -sf $(CURDIR)/scripts/start_vermont /bin/
 	ln -sf $(CURDIR)/scripts/stop_vermont /bin/
 

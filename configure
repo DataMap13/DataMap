@@ -37,6 +37,9 @@ server_items = [
 	["server_port", "Central Server Port", PORT_REGEX, DEFAULT_SERVER_PORT],
 	["node_port", "Collection Node(s) Port", PORT_REGEX, DEFAULT_NODE_PORT],
 	["control_port", "Control Port", PORT_REGEX, DEFAULT_CONTROL_PORT],
+	["db_port", "Database Port", PORT_REGEX, DEFAULT_DB_PORT],
+	["db_username", "Database Username", ".+", None],
+	["db_password", "Database Password", ".+", None]
 ];
 
 # Function for Prompting the User for Input

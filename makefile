@@ -27,7 +27,10 @@ install-node: install-both
 	ln -sf $(CURDIR)/scripts/stop_vermont /bin/
 
 install-server: install-both
-	# Nothing
+	sed -i s/bind-address\\s*=.*/bind-address=$(server_addr)/ /etc/mysql/my.cnf
+	sed -i s/port\\s*=.*/port=$(db_port)/ /etc/mysql/my.cnf
+	mysql -e "GRANT ALL PRIVILEGES ON *.* TO '$(db_user)'@'%' IDENTIFIED BY '$(db_password)' WITH GRANT OPTION;" -p
+	sudo service mysql restart
 
 install-both:
 	ln -sf $(CURDIR)/daemons/datamap_daemon_control /etc/init.d/datamap

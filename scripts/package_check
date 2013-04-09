@@ -22,7 +22,8 @@ REQUIRED_PACKAGES_NODE = [
 ];
 
 REQUIRED_PACKAGES_SERVER = [
-	"make"
+	"make",
+	"mysql-server"
 ];
 
 packages_list = subprocess.check_output("dpkg --get-selections", shell=True)

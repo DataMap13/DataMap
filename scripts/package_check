@@ -10,7 +10,7 @@ REQUIRED_PACKAGES_NODE = [
 ];
 
 REQUIRED_PACKAGES_SERVER = [
-
+	"make"
 ];
 
 packages_list = subprocess.check_output("dpkg --get-selections", shell=True)

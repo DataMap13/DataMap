@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import re
+import subprocess
 
 # Default Values
 CONFIG_FILE = ".config"
@@ -50,13 +51,23 @@ def prompt(prompt,regex,default):
 			return val
 		elif (val == "" and default != None):
 			return default
-
+			
 # Determine the Setup Type
 type = prompt("Is this a Collection Node (1) or a Central Server (2)?", "^1|2$", None)
 if (type == "1"):
+	type_text = "node"
 	items = node_items
 else:
+	type_text = "server"
 	items = server_items
+
+# First, Check that we have all the packages that we need
+try:
+	subprocess.check_call("scripts/package_check " + type_text, shell=True)
+except:
+	response = prompt("Would you like to contiue anyway?", "[n|N|y|Y].*", "No");
+	if (response.lower().startswith("n")):
+		exit()
 	
 # Get all the Config Values
 for item in items:

@@ -1,0 +1,38 @@
+#!/usr/bin/python
+
+import subprocess
+import sys
+
+USAGE_STRING = "Usage: " + sys.argv[0] + " [node|server]"
+
+REQUIRED_PACKAGES_NODE = [
+	
+];
+
+REQUIRED_PACKAGES_SERVER = [
+
+];
+
+packages_list = subprocess.check_output("dpkg --get-selections", shell=True)
+packages_list = packages_list.replace("install","")
+packages = packages_list.split()
+
+type = sys.argv[1]
+if (type == "server"):
+	req_packages = REQUIRED_PACKAGES_SERVER
+elif (type == "node"):
+	req_packages = REQUIRED_PACKAGES_NODE
+else:
+	print USAGE_STRING
+	
+missing_packages = ""
+for package in req_packages:
+	if not package in packages:
+		missing_packages += "  " + package + "\n"
+		
+if missing_packages == "":
+	exit(0)
+	
+print "\nUnable to locate the following packages on your system:"
+print missing_packages
+exit(-1)

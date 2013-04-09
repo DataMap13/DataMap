@@ -31,6 +31,7 @@ install-server: install-both
 	sed -i s/port\\s*=.*/port=$(db_port)/ /etc/mysql/my.cnf
 	mysql -e "GRANT ALL PRIVILEGES ON *.* TO '$(db_user)'@'%' IDENTIFIED BY '$(db_password)' WITH GRANT OPTION;" -p
 	sudo service mysql restart
+	ln -sf $(CURDIR)/web $(web_folder)
 
 install-both:
 	ln -sf $(CURDIR)/daemons/datamap_daemon_control /etc/init.d/datamap

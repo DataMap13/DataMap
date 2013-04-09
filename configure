@@ -10,11 +10,13 @@ DEFAULT_NODE_PORT = "12346"
 DEFAULT_CONTROL_PORT = "12347"
 DEFAULT_DB_PORT = "3306"
 DEFAULT_DB_NAME = "network_data"
+DEFAULT_WEB_PATH = "/var/www/datamap"
 
 # Regular Expressions
 ADDRESS_REGEX = "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 FLOAT_REGEX = "^[-+]?[0-9]*\.?[0-9]+$"
 PORT_REGEX = "^\d{1,5}$"
+PATH_REGEX = "[^\0]+"
 
 # Configuration Items just for Collection Nodes
 node_items = [
@@ -39,7 +41,8 @@ server_items = [
 	["control_port", "Control Port", PORT_REGEX, DEFAULT_CONTROL_PORT],
 	["db_port", "Database Port", PORT_REGEX, DEFAULT_DB_PORT],
 	["db_username", "Database Username", ".+", None],
-	["db_password", "Database Password", ".+", None]
+	["db_password", "Database Password", ".+", None],
+	["web_folder", "Web Server Location", PATH_REGEX, DEFAULT_WEB_PATH]
 ];
 
 # Function for Prompting the User for Input

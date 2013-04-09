@@ -6,7 +6,19 @@ import sys
 USAGE_STRING = "Usage: " + sys.argv[0] + " [node|server]"
 
 REQUIRED_PACKAGES_NODE = [
-	
+	"make",
+	"cmake",
+	"gcc",
+	"g++",
+	"libboost-dev",
+	"libboost-regex-dev",
+	"libboost-thread-dev",
+	"libboost-filesystem-dev",
+	"libboost-test-dev",
+	"libxml2-dev",
+	"libmysqlclient-dev",
+	"libpcap-dev",
+	"libsctp-dev"
 ];
 
 REQUIRED_PACKAGES_SERVER = [

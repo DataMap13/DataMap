@@ -63,6 +63,7 @@ uninstall-node:
 	rm -f /bin/vermont_config.xml
 	rm -f /bin/start_vermont
 	rm -f /bin/stop_vermont
+	rm -f /bin/vermont_config.xml.tmp
 
 uninstall-server:
 	if [-e /etc/mysql/my.cnf.orig]; then mv /etc/mysql/my.cnf.orig /etc/mysql/my.cnf; fi;

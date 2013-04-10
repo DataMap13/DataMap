@@ -9,8 +9,7 @@ cat /bin/.datamap_config | while read line
 do
 	name=`echo $line | sed s/=.*//`
 	val=`echo $line | sed s/.*=//`
-	echo $name = $val
 	sed -i s/\{$name\}/$val/ $TMP_FILE
 done
 
-vermont -f /bin/vermont_config.xml.tmp
+vermont -f /bin/vermont_config.xml.tmp $@

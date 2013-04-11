@@ -29,18 +29,17 @@
 #include "common/Time.h"
 #include "HashtableBuckets.h"
 
-#include <time.h>
-
 using namespace InformationElement;
 
 const uint32_t PacketHashtable::ExpHelperTable::UNUSED = 0xFFFFFFFF;
 
 PacketHashtable::PacketHashtable(Source<IpfixRecord*>* recordsource, Rule* rule,
-		uint16_t minBufferTime, uint16_t maxBufferTime, uint8_t hashbits)
+		uint16_t minBufferTime, uint16_t maxBufferTime, uint8_t hashbits, uint32_t interval_in)
 	: BaseHashtable(recordsource, rule, minBufferTime, maxBufferTime, hashbits),
 	snapshotWritten(false), startTime(time(0))
 {
 	buildExpHelperTable();
+	interval = interval_in;
 }
 
 
@@ -1414,7 +1413,7 @@ void PacketHashtable::aggregatePacket(const Packet* p)
 	
 	// Determine the window in which the packet was captured
 	suseconds_t window;
-	window = p->timestamp.tv_sec;
+	window = ((p->timestamp.tv_sec*1000 + p->timestamp.tv_usec / 1000) / interval) * interval;
 
 	DPRINTF("PacketHashtable::aggregatePacket()");
 	updatePointers(p);

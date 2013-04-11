@@ -61,9 +61,10 @@ protected:
 	virtual void performStart();
 	virtual void performShutdown();
 	
+	uint32_t pollInterval; /**< polling interval in milliseconds */
+	
 private:
 	Thread thread;
-	uint32_t pollInterval; /**< polling interval in milliseconds */
 	
 	static void* threadWrapper(void* instance);
 };

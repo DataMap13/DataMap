@@ -39,7 +39,7 @@
 				<ieName>tcpControlBits</ieName>
 			</nonFlowKey>
 		</rule>
-		<pollInterval unit="msec">100</pollInterval>
+		<pollInterval unit="msec">{interval}</pollInterval>
 		<next>3</next>
 	</packetAggregator>
 
@@ -74,7 +74,7 @@
 			<longitude>{longitude}</longitude>
 		</location>
 		<columns>
-			<name>firstSwitched</name>
+			<name>firstSwitchedMillis</name>
 			<name>srcIP</name>
 			<name>dstIP</name>
 			<name>srcPort</name>

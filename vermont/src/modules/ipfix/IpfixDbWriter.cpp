@@ -46,9 +46,9 @@ const IpfixDbWriter::Column IpfixDbWriter::identify [] = {
 	{CN_pkts, 		"BIGINT(20) UNSIGNED", 		0, IPFIX_TYPEID_packetDeltaCount, 0},
 	{CN_firstSwitched, 	"INTEGER(10) UNSIGNED", 	0, IPFIX_TYPEID_flowStartSeconds, 0}, // default value is invalid/not used for this ent
 	{CN_lastSwitched, 	"INTEGER(10) UNSIGNED", 	0, IPFIX_TYPEID_flowEndSeconds, 0}, // default value is invalid/not used for this entry
-	{CN_firstSwitchedMillis, "SMALLINT(5) UNSIGNED", 	0, IPFIX_TYPEID_flowStartMilliSeconds, 0},
-	{CN_lastSwitchedMillis, "SMALLINT(5) UNSIGNED", 	0, IPFIX_TYPEID_flowEndMilliSeconds, 0},
-	{CN_tcpControlBits,  	"SMALLINT(5) UNSIGNED", 	0, IPFIX_TYPEID_tcpControlBits, 0},
+	{CN_firstSwitchedMillis, "BIGINT UNSIGNED", 	0, IPFIX_TYPEID_flowStartMilliSeconds, 0},
+	{CN_lastSwitchedMillis, "BIGINT UNSIGNED", 	0, IPFIX_TYPEID_flowEndMilliSeconds, 0},
+	{CN_tcpControlBits,  	"BIGINT UNSIGNED", 	0, IPFIX_TYPEID_tcpControlBits, 0},
 	//TODO: use enterprise number for the following extended types (Gerhard, 12/2009)
 	{CN_revbytes, 		"BIGINT(20) UNSIGNED", 		0, IPFIX_TYPEID_octetDeltaCount, IPFIX_PEN_reverse},
 	{CN_revpkts, 		"BIGINT(20) UNSIGNED", 		0, IPFIX_TYPEID_packetDeltaCount, IPFIX_PEN_reverse},
@@ -365,7 +365,9 @@ string& IpfixDbWriter::getInsertString(string& row, time_t& flowstartsec, const 
 							flowstartsec = intdata/1000;
 					case IPFIX_TYPEID_flowEndMilliSeconds:
 						// in the database the millisecond entry is counted from last second
-						intdata %= 1000;
+						// DataMap: we are writing the full time to the database (seconds and milliseconds),
+						//	so this modulus is unwanted
+						//intdata %= 1000;
 						break;
 				}
 			} else if (col->enterprise==IPFIX_PEN_reverse)

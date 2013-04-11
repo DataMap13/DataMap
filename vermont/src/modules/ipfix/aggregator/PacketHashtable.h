@@ -36,7 +36,8 @@ class PacketHashtable : public BaseHashtable
 {
 public:
 	PacketHashtable(Source<IpfixRecord*>* recordsource, Rule* rule,
-			uint16_t minBufferTime, uint16_t maxBufferTime, uint8_t hashbits);
+			uint16_t minBufferTime, uint16_t maxBufferTime, uint8_t hashbits,
+			uint32_t interval_in);
 	virtual ~PacketHashtable();
 
 	void aggregatePacket(const Packet* p);
@@ -170,6 +171,8 @@ private:
 	bool isRawPacketPtrVariable(const InformationElement::IeInfo& type);
 	void updateBucketData(HashtableBucket* bucket);
 	uint32_t getDstOffset(const InformationElement::IeInfo& ietype);
+	
+	int interval;
 
 };
 

@@ -72,7 +72,7 @@ void PacketAggregator::receive(Packet* e)
 BaseHashtable* PacketAggregator::createHashtable(Rule* rule, uint16_t minBufferTime,
 		uint16_t maxBufferTime, uint8_t hashbits)
 {
-	return new PacketHashtable(this, rule, minBufferTime, maxBufferTime, hashbits);
+	return new PacketHashtable(this, rule, minBufferTime, maxBufferTime, hashbits, pollInterval);
 }
 
 

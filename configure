@@ -30,7 +30,8 @@ node_items = [
 	["db_port", "Database Port", PORT_REGEX, DEFAULT_DB_PORT],
 	["db_name", "Database Name", ".+", DEFAULT_DB_NAME],
 	["db_username", "Database Username", ".+", None],
-	["db_password", "Database Password", ".+", None]
+	["db_password", "Database Password", ".+", None],
+	["interval", "Capture Interval (in ms)", "\\d+", "100"]
 ];
 
 # Configuration Items just for the Central Server

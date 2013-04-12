@@ -51,8 +51,8 @@ class IpfixDbWriter
 		IpfixDbWriter(const string& hostname, const string& dbname,
 				const string& username, const string& password,
 				unsigned port, uint32_t observationDomainId, unsigned maxStatements,
-				const int32_t nodeId, const int32_t latitude, const int32_t longitude,
-				const vector<string>& columns);
+				const int32_t nodeId, const int32_t latitude, const int32_t interval,
+				const int32_t longitude, const vector<string>& columns);
 		~IpfixDbWriter();
 
 		void onDataRecord(IpfixDataRecord* record);
@@ -131,6 +131,7 @@ class IpfixDbWriter
 		int32_t nodeId;
 		int32_t latitude;
 		int32_t longitude;
+		int32_t interval;
 		
 };
 

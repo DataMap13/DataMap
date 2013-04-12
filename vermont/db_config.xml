@@ -73,6 +73,7 @@
 			<latitude>{latitude}</latitude>
 			<longitude>{longitude}</longitude>
 		</location>
+		<interval>{interval}</interval>
 		<columns>
 			<name>firstSwitchedMillis</name>
 			<name>srcIP</name>

@@ -57,6 +57,7 @@ protected:
 	vector<string> colNames; /**< column names */
 	int32_t nodeId;
 	int32_t latitude, longitude;
+	int32_t interval;
 
 	void readColumns(XMLElement* elem);
 	void readLocation(XMLElement* elem);

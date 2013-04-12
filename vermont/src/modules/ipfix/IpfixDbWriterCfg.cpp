@@ -65,6 +65,8 @@ IpfixDbWriterCfg::IpfixDbWriterCfg(XMLElement* elem)
 			nodeId = atoi(e->getFirstText().c_str());
 		} else if (e->matches("location")) {
 			readLocation(e);
+		} else if (e->matches("interval")) {
+			interval = atoi(e->getFirstText().c_str());
 		} else {
 			msg(MSG_FATAL, "Unknown IpfixDbWriter config statement %s\n", e->getName().c_str());
 			continue;
@@ -122,7 +124,7 @@ IpfixDbWriterCfg::~IpfixDbWriterCfg()
 IpfixDbWriter* IpfixDbWriterCfg::createInstance()
 {
     instance = new IpfixDbWriter(hostname, dbname, user, password, port, observationDomainId,
-		bufferRecords, nodeId, latitude, longitude, colNames);
+		bufferRecords, nodeId, latitude, longitude, interval, colNames);
     return instance;
 }
 

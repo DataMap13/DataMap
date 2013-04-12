@@ -366,8 +366,11 @@ string& IpfixDbWriter::getInsertString(string& row, time_t& flowstartsec, const 
 					case IPFIX_TYPEID_flowEndMilliSeconds:
 						// in the database the millisecond entry is counted from last second
 						// DataMap: we are writing the full time to the database (seconds and milliseconds),
-						//	so this modulus is unwanted
+						//	so this modulo is unwanted
 						//intdata %= 1000;
+						// However, we do want to round down to the start time of the interval in which the packet
+						//	was observed
+						intdata = (intdata / interval) * interval;
 						break;
 				}
 			} else if (col->enterprise==IPFIX_PEN_reverse)
@@ -599,7 +602,7 @@ IpfixDbWriter::IpfixDbWriter(const string& hostname, const string& dbname,
 				const string& username, const string& password,
 				unsigned port, uint32_t observationDomainId, unsigned maxStatements,
 				const int32_t nodeId_in, const int32_t latitude_in, const int32_t longitude_in,
-				const vector<string>& columns)
+				const int32_t interval_in, const vector<string>& columns)
 	: currentExporter(NULL), numberOfInserts(0), maxInserts(maxStatements),
 	dbHost(hostname), dbName(dbname), dbUser(username), dbPassword(password), dbPort(port), conn(0)
 {
@@ -608,6 +611,7 @@ IpfixDbWriter::IpfixDbWriter(const string& hostname, const string& dbname,
 	nodeId = nodeId_in;
 	latitude = latitude_in;
 	longitude = longitude_in;
+	interval = interval_in;
 
 	// set default source id
 	srcId.exporterAddress.len = 0;

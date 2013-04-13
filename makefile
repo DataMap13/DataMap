@@ -16,6 +16,9 @@ endif
 build: $(BUILD_TARGET)
 
 build-node:
+	git submodule init
+	git submodule update
+	patch -p2 < vermont_patch.diff
 	cd vermont; cmake -D SUPPORT_MYSQL=ON .
 	make -C vermont
 	
@@ -46,7 +49,8 @@ install-server:
 clean: $(CLEAN_TARGET)
 
 clean-node:
-	make -C vermont clean
+	rm -fr vermont
+	mkdir vermont
 	
 clean-server:
 	echo "Nothing to do"

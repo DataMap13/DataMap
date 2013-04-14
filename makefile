@@ -18,7 +18,7 @@ build: $(BUILD_TARGET)
 build-node:
 	git submodule init
 	git submodule update
-	patch -p2 < vermont_patch.diff
+	tar xvf vermont_patch.tar
 	cd vermont; cmake -D SUPPORT_MYSQL=ON .
 	make -C vermont
 	

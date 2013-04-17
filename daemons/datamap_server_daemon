@@ -20,7 +20,6 @@ def handle_hello(conn,addr):
 	collection_nodes_lock.acquire()
 	if (not addr[0] in collection_nodes.keys()):
 		collection_nodes[addr[0]] = {
-			"last_heartbeat" : time.time(),
 			"state" : STATE_CONNECTED,
 			"name" : "Unknown",
 		}
@@ -131,10 +130,10 @@ class HeartbeatThread(StoppableThread):
 		for node in collection_nodes.keys():
 			logging.debug("Sending heartbeat message to " + node)
 			if (collection_nodes[node]["state"] != STATE_DISCONNECTED):
-				result = send_and_get_ack(node, int(get_config("node_port")), HEARTBEAT_MSG)
-				if (result == None):
+				result = send_and_get_ack_response(node, int(get_config("node_port")), HEARTBEAT_MSG)
+				if (not result.startswith("Fail:")):
 					logging.debug("Heartbeat with " + node + " successful")
-					last_heartbeat = time.time()
+					collection_nodes[node]["state"] = result
 				else:
 					logging.info("Heartbeat with node " + node + " failed: " + result + ". Assuming disconnected.")
 					collection_nodes[node]["state"] = STATE_DISCONNECTED

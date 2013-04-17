@@ -21,11 +21,10 @@ def handle_hello(conn,addr):
 	if (not addr[0] in collection_nodes.keys()):
 		collection_nodes[addr[0]] = {
 			"last_heartbeat" : time.time(),
-			"connected" : True,
+			"state" : STATE_CONNECTED,
 			"name" : "Unknown",
-			"running" : False
 		}
-	collection_nodes[addr[0]]["connected"] = True
+	collection_nodes[addr[0]]["state"] = STATE_CONNECTED
 	collection_nodes_lock.release()
 	conn.send(ACK_MSG)
 
@@ -59,12 +58,7 @@ def handle_status_request(conn):
 	reply = ""
 	collection_nodes_lock.acquire()
 	for node in collection_nodes.keys():
-		reply += node + " " + collection_nodes[node]["name"] + " "
-		if (collection_nodes[node]["connected"]):
-			reply += " connected "
-		if (collection_nodes[node]["running"]):
-			reply += " running "
-		reply += "\n"
+		reply += node + " " + collection_nodes[node]["name"] + " " + collection_nodes[node]["state"] + "\n"
 	logging.debug("Got status request. Replying with: \n" + reply)
 	conn.send(reply)
 	collection_nodes_lock.release()	
@@ -80,7 +74,7 @@ def handle_start_stop_remove_command(conn,msg,prefix,node_msg):
 			conn.send(NACK_MSG)
 			collection_nodes_lock.release()
 			return
-		if node_msg == REMOVE_COMMAND_PREFIX and node != "all" and collection_nodes[node]["connected"]:
+		if node_msg == REMOVE_COMMAND_PREFIX and node != "all" and collection_nodes[node]["state"] != DISCONNECTED:
 			logging.warn("Controller requested removal of node \"" + node + "\", but it is still connected. Sending NACK.")
 			conn.send(NACK_MSG)
 			collection_nodes_lock.release()
@@ -98,9 +92,12 @@ def handle_start_stop_remove_command(conn,msg,prefix,node_msg):
 			logging.info("Sending " + node_msg + " message to " + node)
 			result = send_and_get_ack(node, int(get_config("node_port")), node_msg)
 			if (result == None):
-				collection_nodes[node]["running"] = node_msg == START_MSG
+				if (node_msg == START_MSG):
+					collection_nodes[node]["state"] = STATE_COLLECTING
+				elif (node_msg == STOP_MSG):
+					collection_nodes[node]["state"] = STATE_CONNECTED
 			else:
-				logging.error("Starting node " + node + " failed: " + result)
+				logging.error(node_msg + "ing node " + str(node) + " failed: " + str(result))
 				success = False
 	collection_nodes_lock.release()
 	if (success):
@@ -133,15 +130,14 @@ class HeartbeatThread(StoppableThread):
 		logging.debug("Current Collection Nodes: " + str(collection_nodes))
 		for node in collection_nodes.keys():
 			logging.debug("Sending heartbeat message to " + node)
-			if (collection_nodes[node]["connected"]):
+			if (collection_nodes[node]["state"] != STATE_DISCONNECTED):
 				result = send_and_get_ack(node, int(get_config("node_port")), HEARTBEAT_MSG)
 				if (result == None):
 					logging.debug("Heartbeat with " + node + " successful")
 					last_heartbeat = time.time()
 				else:
 					logging.info("Heartbeat with node " + node + " failed: " + result + ". Assuming disconnected.")
-					collection_nodes[node]["connected"] = False
-					collection_nodes[node]["running"] = False
+					collection_nodes[node]["state"] = STATE_DISCONNECTED
 		collection_nodes_lock.release()
 		time.sleep(HEARTBEAT_INT)
 	def uninit(self):

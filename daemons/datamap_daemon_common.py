@@ -20,6 +20,12 @@ HEARTBEAT_INT = 1
 TIMEOUT = 5
 CONFIG_FILE = __location__ + "/.datamap_config"
 
+# Possible Collection Node States
+STATE_DISCONNECTED = "DISCONNECTED"		# Not connected
+STATE_CONNECTED = "CONNECTED"			# Connected, but not collecting
+STATE_COLLECTING = "COLLECTING"			# Connected and collecting
+STATE_ERROR = "ERROR"					# An error has occurred
+
 # Central Server / Collection Node Messages
 HELLO_MSG = "hello"
 HEARTBEAT_MSG = "heartbeat"

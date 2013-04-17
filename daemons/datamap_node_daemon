@@ -14,6 +14,7 @@ state = STATE_DISCONNECTED
 state_lock = threading.Lock()
 error = ""
 error_lock = threading.Lock()
+vermont_pid = -1;
 
 # Handler for heartbeat messages from the central server. Tracks the time that the last heartbeat occured.
 def handle_heartbeat(conn):
@@ -23,7 +24,12 @@ def handle_heartbeat(conn):
 	last_heartbeat = time.time()
 	last_heartbeat_lock.release()
 	state_lock.acquire()
-	msg = ACK_MSG + state
+	if (state == STATE_ERROR):
+		error_lock.acquire()
+		msg = ACK_MSG + state + ":" + error
+		error_lock.release()
+	else:
+		msg = ACK_MSG + state
 	state_lock.release()
 	conn.send(msg)
 
@@ -98,6 +104,31 @@ class HelloThread(StoppableThread):
 		time.sleep(HEARTBEAT_INT)
 	def uninit(self):
 		pass
+		
+# Thread for checking if vermont is actually running
+class VermontCheckThread(StoppableThread):
+	def __init__(self):
+		StoppableThread.__init__(self, self.init, self.loop, self.uninit)
+	def init(self):
+		pass
+	def loop(self):
+		global state, state_lock, error, error_lock
+		state_lock.acquire()
+		if (state == STATE_COLLECTING):
+			process = subprocess.Popen("ps -fe | grep 'vermont -f' | grep -v grep", shell=True, stdout=subprocess.PIPE)
+			result = process.stdout.read()
+			process.stdout.close()
+			process.wait
+			if (not "vermont" in result):
+				logging.error("Vermont unexpectedly exited. Entering erro state.")
+				state = STATE_ERROR
+				error_lock.acquire()
+				error = "vermont unexpectedly exited, check logs for details"
+				error_lock.release()
+		state_lock.release()
+		time.sleep(HEARTBEAT_INT)			
+	def uninit(self):
+		pass
 			
 # Start the required threads
 helloThread = HelloThread()
@@ -105,6 +136,9 @@ helloThread.start()
 
 centralServerHandlerThread = ConnectionHandlerThread(get_config("node_addr"), int(get_config("node_port")), handle_server_message)
 centralServerHandlerThread.start()
+
+vermontCheckThread = VermontCheckThread()
+vermontCheckThread.start()
 
 # Run forever (unless there is a keyboard interrupt)
 while True:

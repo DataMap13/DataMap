@@ -53,9 +53,9 @@ def get_config(name):
 			return line.replace(name+"=","").strip()
 	logging.error("Failed to find configuration item \"" + name + "\"")
 	return None
-
+	
 # Sends the supplied message to the specified address on the specified port. Returns None if successful, or an error message if not
-def send_and_get_ack(addr, port, msg):
+def send_and_get_ack_response(addr, port, msg):
 	logging.debug("Sending message \"" + msg + "\" to " + str(addr) + ":" + str(port) + " and expecting ACK.")
 	try:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -64,15 +64,24 @@ def send_and_get_ack(addr, port, msg):
 		ready = select.select([sock],[],[],TIMEOUT)
 		if (ready[0]):
 			reply = sock.recv(MAX_MSG_SIZE)
+			logging.debug("Got Reply: " + reply)
 			sock.close()
-			if (reply == ACK_MSG):
-				return None
+			if (reply.startswith(ACK_MSG)):
+				return reply.replace(ACK_MSG,"")
 			else:
-				return "Unexpected reply: " + reply
+				return "Fail:Unexpected reply: " + reply
 		else:
-			return "Timed out waiting for ack from " + addr + ":" + str(port)
+			return "Fail:Timed out waiting for ack from " + addr + ":" + str(port)
 	except:
-		return "Error occured while sending message to " + addr + ": " + str(sys.exc_info())
+		return "Fail:Error occured while sending message to " + addr + ": " + str(sys.exc_info())
+
+# Sends the supplied message to the specified address on the specified port. Returns None if successful, or an error message if not
+def send_and_get_ack(addr, port, msg):
+	result = send_and_get_ack_response(addr, port, msg)
+	if (result.startswith("Fail:")):
+		return result.replace("Fail:", "")
+	else:
+		return None
 
 # Class that allows a looped thread to be stopped. It will run the init function provided in the constructor and then enter an infinite loop running the loop function until stop() is called. Then, the uninit function will be called after the next loop iteration finishes and before the thread exits.
 class StoppableThread(threading.Thread):

@@ -22,6 +22,7 @@ def handle_hello(conn,addr):
 		collection_nodes[addr[0]] = {
 			"state" : STATE_CONNECTED,
 			"name" : "Unknown",
+			"error" : ""
 		}
 	collection_nodes[addr[0]]["state"] = STATE_CONNECTED
 	collection_nodes_lock.release()
@@ -57,7 +58,12 @@ def handle_status_request(conn):
 	reply = ""
 	collection_nodes_lock.acquire()
 	for node in collection_nodes.keys():
-		reply += node + " " + collection_nodes[node]["name"] + " " + collection_nodes[node]["state"] + "\n"
+		reply += node + " " + collection_nodes[node]["name"] + " "
+		if (collection_nodes[node]["state"] == STATE_ERROR):
+			reply += " " + STATE_ERROR + ":" + collection_nodes[node]["error"] + " "
+		else:
+			reply += " " + collection_nodes[node]["state"] + " "
+		reply += "\n"
 	logging.debug("Got status request. Replying with: \n" + reply)
 	conn.send(reply)
 	collection_nodes_lock.release()	

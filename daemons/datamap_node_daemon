@@ -10,28 +10,45 @@ from datamap_daemon_common import *
 # Node State
 last_heartbeat = 0
 last_heartbeat_lock = threading.Lock()
+state = STATE_DISCONNECTED
+state_lock = threading.Lock()
+error = ""
+error_lock = threading.Lock()
 
 # Handler for heartbeat messages from the central server. Tracks the time that the last heartbeat occured.
 def handle_heartbeat(conn):
-	global last_heartbeat
+	global last_heartbeat, last_heartbeat_lock, state, state_lock
 	logging.debug("Handling heartbeat message")
 	last_heartbeat_lock.acquire()
 	last_heartbeat = time.time()
 	last_heartbeat_lock.release()
-	conn.send(ACK_MSG)
+	state_lock.acquire()
+	msg = ACK_MSG + state
+	state_lock.release()
+	conn.send(msg)
 
 # Handler for start messages from the central server. Starts vermont.
 def handle_start(conn):
+	global state, state_lock
 	logging.info("Received start command. Starting vermont")
 	subprocess.call("start_vermont &", shell=True)
 	logging.info("Vermont started")
+	state_lock.acquire()
+	state = STATE_COLLECTING
+	logging.debug("State: " + state)
+	state_lock.release()
 	conn.send(ACK_MSG)
 
 # Handler for stop messages from the central server. Kills vermont.
 def handle_stop(conn):
+	global state, state_lock
 	logging.info("Received stop command. Stopping vermont")
 	subprocess.call("stop_vermont", shell=True)
 	logging.info("Vermont Stopped")
+	state_lock.acquire()
+	state = STATE_CONNECTED
+	logging.debug("State: " + state)
+	state_lock.release()
 	conn.send(ACK_MSG)
 
 # Handler for all messages from the central server. Decodes the message and calls the corresponding function
@@ -53,14 +70,22 @@ class HelloThread(StoppableThread):
 	def init(self):
 		pass
 	def loop(self):
-		global last_heartbeat, last_heartbeat_lock
+		global last_heartbeat, last_heartbeat_lock, state, state_lock
 		last_heartbeat_lock.acquire()
 		if (time.time()-last_heartbeat > 5*HEARTBEAT_INT):
 			logging.info("Heartbeat message not received for long time. Sending hello message")
+			state_lock.acquire()
+			state = STATE_DISCONNECTED
+			logging.debug("State: " + state)
+			state_lock.release()
 			result = send_and_get_ack(get_config("server_addr"), int(get_config("server_port")), HELLO_MSG)
 			if (result == None):
 				last_heartbeat = time.time()
 				logging.info("Successfully connected to central server")
+				state_lock.acquire()
+				state = STATE_CONNECTED
+				state_lock.release()
+				logging.debug("State: " + state)
 				result = send_and_get_ack(get_config("server_addr"), int(get_config("server_port")), NAME_MSG_PREFIX + get_config("node_id"))
 				if (result == None):
 					last_heartbeat = time.time()

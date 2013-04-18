@@ -57,6 +57,7 @@ def handle_status_request(conn):
 	global collection_nodes, collection_nodes_lock
 	reply = ""
 	collection_nodes_lock.acquire()
+	reply = "\n"
 	for node in collection_nodes.keys():
 		reply += node + " " + collection_nodes[node]["name"] + " "
 		if (collection_nodes[node]["state"] == STATE_ERROR):

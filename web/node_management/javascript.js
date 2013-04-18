@@ -16,6 +16,11 @@ function getStatus() {
 			handleAs: "json",
 			load: function(data) {
 			
+				if (data == "") {
+					tableArea.innerHTML = "No Known Nodes";
+					return;
+				}	
+			
 				var table = document.createElement('table');
 				
 				header = table.createTHead();
@@ -31,6 +36,8 @@ function getStatus() {
 					for (var j in status_table_headers) {
 						var cell = row.insertCell(j);
 						cell.innerHTML = data[i][status_table_headers[j][1]];
+						if (status_table_headers[j][1] == "state")
+							cell.className = data[i][status_table_headers[j][1]];
 					}
 				}
 			

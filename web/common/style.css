@@ -8,7 +8,7 @@ a {
 
 .title {
 	font-size: 75px;
-	background-color: #333333;
+	background-color: #000000;
 	padding: 25px;
 	color: #11AA22;
 }
@@ -48,9 +48,27 @@ table {
 
 thead {
 	font-weight: bold;
+	background-color: #DDDDDD;
+	font-size: 18px;
 }
 
 td {
 	padding: 5px 10px;
 	border: 1px solid black;
+}
+
+.DISCONNECTED {
+	background-color: #FFD966;
+}
+
+.CONNECTED {
+	background-color: #9DC3E6;
+}
+
+.COLLECTING {
+	background-color: green;
+}
+
+.ERROR {
+	background-color: red;
 }

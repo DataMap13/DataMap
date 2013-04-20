@@ -78,7 +78,7 @@ class HelloThread(StoppableThread):
 	def loop(self):
 		global last_heartbeat, last_heartbeat_lock, state, state_lock
 		last_heartbeat_lock.acquire()
-		if (time.time()-last_heartbeat > 5*HEARTBEAT_INT):
+		if (time.time()-last_heartbeat > NODE_HEARTBEATS_TIMEOUT*HEARTBEAT_INT):
 			logging.info("Heartbeat message not received for long time. Sending hello message")
 			state_lock.acquire()
 			state = STATE_DISCONNECTED

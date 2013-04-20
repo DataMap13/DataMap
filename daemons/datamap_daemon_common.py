@@ -16,8 +16,9 @@ logging.basicConfig(filename="/var/log/datamap.log",level=logging.DEBUG)
 
 # General Configuration
 MAX_MSG_SIZE = 1024
-HEARTBEAT_INT = 1
-TIMEOUT = 5
+HEARTBEAT_INT = 5
+TIMEOUT = 10
+NODE_HEARTBEATS_TIMEOUT = 10
 CONFIG_FILE = __location__ + "/.datamap_config"
 
 # Possible Collection Node States

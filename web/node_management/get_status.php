@@ -1,12 +1,14 @@
 <?php
 
+require("../common/config.php");
+
 $socket = socket_create(AF_INET, SOCK_STREAM, 0);
 if (!$socket) {
 	die(create_socket_error("Failed to create socket"));
 }
 
 // TODO: Make this configurable
-if (!socket_connect($socket, "192.168.183.133", 12347)) {
+if (!socket_connect($socket, $config['server_addr'], $config['control_port'])) {
 	die(create_socket_error("Could not connect to socket"));
 }
 

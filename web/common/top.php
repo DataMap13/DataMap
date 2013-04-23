@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 
+<?php
+require("config.php");
+?>
+
 <html>
 
 	<head>

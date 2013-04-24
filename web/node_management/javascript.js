@@ -41,6 +41,8 @@ function getStatus() {
 						cell.innerHTML = data[i][status_table_headers[j][1]];
 						if (status_table_headers[j][1] == "state") {
 							state = data[i][status_table_headers[j][1]];
+							if (state.match("ERROR:"))
+								state = "ERROR";
 							cell.className = state;
 						}
 					}

@@ -24,7 +24,7 @@ if (!socket_recv($socket, $response, 1024, MSG_WAITALL)) {
 $nodes = array();
 foreach (preg_split("/\n/",$response) as $line) {
 	if ($line == "") continue;
-	$vals = preg_split("/\s+/", $line);
+	$vals = preg_split("/\|/", $line);
 	$nodes[] = array(
 		"ip" => $vals[0],
 		"id" => $vals[1],

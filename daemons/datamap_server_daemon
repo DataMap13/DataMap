@@ -59,11 +59,11 @@ def handle_status_request(conn):
 	collection_nodes_lock.acquire()
 	reply = "\n"
 	for node in collection_nodes.keys():
-		reply += node + " " + collection_nodes[node]["name"] + " "
+		reply += node + "|" + collection_nodes[node]["name"]
 		if (collection_nodes[node]["state"] == STATE_ERROR):
-			reply += " " + STATE_ERROR + ":" + collection_nodes[node]["error"] + " "
+			reply += "|" + STATE_ERROR + ":" + collection_nodes[node]["error"]
 		else:
-			reply += " " + collection_nodes[node]["state"] + " "
+			reply += "|" + collection_nodes[node]["state"]
 		reply += "\n"
 	logging.debug("Got status request. Replying with: \n" + reply)
 	conn.send(reply)

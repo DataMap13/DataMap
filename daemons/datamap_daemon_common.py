@@ -110,7 +110,13 @@ class ConnectionHandlerThread(StoppableThread):
 	def init(self):
 		self.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self.listen_socket.bind((self.addr, self.port))
+		success = False
+		while not success:
+			try:
+				self.listen_socket.bind((self.addr, self.port))
+				success = True
+			except Exception as err:
+				time.sleep(10)
 		self.listen_socket.listen(10)
 	def loop(self):
 		try:

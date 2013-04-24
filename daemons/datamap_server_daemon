@@ -150,10 +150,10 @@ class HeartbeatThread(StoppableThread):
 		pass
 
 # Start the required threads
-collectionNodeHandlerThread = ConnectionHandlerThread(get_config("server_addr"), int(get_config("server_port")), handle_node_message)
+collectionNodeHandlerThread = ConnectionHandlerThread(int(get_config("server_port")), handle_node_message)
 collectionNodeHandlerThread.start()
 
-controlHandlerThread = ConnectionHandlerThread(get_config("server_addr"), int(get_config("control_port")), handle_control_message)
+controlHandlerThread = ConnectionHandlerThread(int(get_config("control_port")), handle_control_message)
 controlHandlerThread.start()
 
 heartbeatThread = HeartbeatThread()

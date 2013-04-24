@@ -1,12 +1,6 @@
 
 function getStatus() {
 
-	var status_table_headers = new Array(
-		["ID", "id"],
-		["IP Address","ip"],
-		["State","state"]
-	);
-
 	require(["dojo/_base/xhr"], function(xhr) {
 	
 		var tableArea = document.getElementById("status_table_area");
@@ -24,31 +18,29 @@ function getStatus() {
 				var table = document.createElement('table');
 				
 				header = table.createTHead();
-				header_row = header.insertRow(0);
-				for (var i = 0; i < status_table_headers.length; i++) {
-					var cell = header_row.insertCell(i);
-					cell.innerHTML = status_table_headers[i][0];
-				}
-				var cell = header_row.insertCell(status_table_headers.length);
-				cell.innerHTML = "Action";
+				var header_row = header.insertRow(0);
+				header_row.insertCell(0).innerHTML = "ID";
+				header_row.insertCell(1).innerHTML = "IP Address";
+				header_row.insertCell(2).innerHTML = "State";
+				header_row.insertCell(3).innerHTML = "Action";
 				
 				body = table.createTBody();
 				for (var i = 0; i < data.length; i++) {
-					var state;
+				
 					var row = body.insertRow(i);
-					for (var j in status_table_headers) {
-						var cell = row.insertCell(j);
-						cell.innerHTML = data[i][status_table_headers[j][1]];
-						if (status_table_headers[j][1] == "state") {
-							state = data[i][status_table_headers[j][1]];
-							if (state.match("ERROR:"))
-								state = "ERROR";
-							cell.className = state;
-						}
-					}
-					var cell = row.insertCell(status_table_headers.length);
-					var actionSelect = createActionSelect(state);
-					cell.appendChild(actionSelect);
+					
+					row.insertCell(0).innerHTML = data[i]['id'];
+					row.insertCell(1).innerHTML = data[i]['ip'];
+					
+					var state_cell = row.insertCell(2)
+					state_cell.innerHTML = data[i]['state'];
+					if (data[i]['state'].match('ERROR'))
+						data[i]['state'] = "ERROR";
+					state_cell.className = data[i]['state'];
+					
+					var action_cell = row.insertCell(3)
+					action_cell.appendChild(createActionSelect(data[i]['state'],data[i]['ip']));
+					
 				}
 			
 				tableArea.innerHTML = "";
@@ -60,27 +52,43 @@ function getStatus() {
 
 }
 
-function createActionSelect(state) {
+function createActionSelect(state,ip) {
 
 	var select = document.createElement("select");
 	select.add(new Option(" - Action - "));
 	
+	select.onchange = function() {
+		requestAction(select.options[select.selectedIndex].value + " " + ip);
+	};
+	
 	switch(state) {
 		case "DISCONNECTED":
-			select.add(new Option("Remove", "Remove"));
+			select.add(new Option("Remove", "remove"));
 			break;
 		case "CONNECTED":
-			select.add(new Option("Start", "Start"));
+			select.add(new Option("Start", "start"));
 			break;
 		case "COLLECTING":
-			select.add(new Option("Stop", "Stop"));
+			select.add(new Option("Stop", "stop"));
 			break;
 		case "ERROR":
-			select.add(new Option("Start", "Start"));
-			select.add(new Option("Stop", "Stop	"));
+			select.add(new Option("Start", "start"));
+			select.add(new Option("Stop", "stop	"));
 			break;
 	}
 	
 	return select;
+
+}
+
+function requestAction(request) {
+
+	require(["dojo/_base/xhr"], function(xhr) {
+	
+		xhr.get({
+			url: "request_action.php?request=" + encodeURI(request)
+		});
+		
+	});
 
 }

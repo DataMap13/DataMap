@@ -80,7 +80,7 @@ def handle_start_stop_remove_command(conn,msg,prefix,node_msg):
 			conn.send(NACK_MSG)
 			collection_nodes_lock.release()
 			return
-		if node_msg == REMOVE_COMMAND_PREFIX and node != "all" and collection_nodes[node]["state"] != DISCONNECTED:
+		if node_msg == REMOVE_COMMAND_PREFIX and node != "all" and collection_nodes[node]["state"] != "DISCONNECTED":
 			logging.warn("Controller requested removal of node \"" + node + "\", but it is still connected. Sending NACK.")
 			conn.send(NACK_MSG)
 			collection_nodes_lock.release()

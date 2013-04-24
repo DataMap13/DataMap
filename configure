@@ -23,7 +23,6 @@ node_items = [
 	["node_id", "Node ID", "^\\S+$", None],
 	["latitude", "Latitude", FLOAT_REGEX, None],
 	["longitude", "Longitude", FLOAT_REGEX, None],
-	["node_addr", "Collection Node Address", ADDRESS_REGEX, None],
 	["node_port", "Collection Node(s) Port", PORT_REGEX, DEFAULT_NODE_PORT],
 	["server_addr", "Central Server Address", ADDRESS_REGEX, None],
 	["server_port", "Central Server Port", PORT_REGEX, DEFAULT_SERVER_PORT],

@@ -1,8 +1,10 @@
 
 import logging
 import os
+import re
 import select
 import socket
+import subprocess
 import sys
 import threading
 import traceback
@@ -102,9 +104,10 @@ class StoppableThread(threading.Thread):
 
 # Class that listens on a socket and passes the messages back to a message handler
 class ConnectionHandlerThread(StoppableThread):
-	def __init__(self, addr, port, callback):
+	def __init__(self, port, callback):
 		StoppableThread.__init__(self, self.init, self.loop, self.uninit)
-		self.addr = addr
+		self.addr = re.search("inet addr:\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
+			subprocess.check_output("ifconfig eth0", shell=True)).groups()[0]
 		self.port = port
 		self.callback = callback
 	def init(self):

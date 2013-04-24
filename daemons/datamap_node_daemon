@@ -134,7 +134,7 @@ class VermontCheckThread(StoppableThread):
 helloThread = HelloThread()
 helloThread.start()
 
-centralServerHandlerThread = ConnectionHandlerThread(get_config("node_addr"), int(get_config("node_port")), handle_server_message)
+centralServerHandlerThread = ConnectionHandlerThread(int(get_config("node_port")), handle_server_message)
 centralServerHandlerThread.start()
 
 vermontCheckThread = VermontCheckThread()

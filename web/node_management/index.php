@@ -1,7 +1,7 @@
 
 <?php
 $page_title = "Node Management";
-$on_load = "getStatus();";
+$on_load = "getStatus(); setInterval('getStatus();', 5000);";
 
 require "../common/top.php";
 ?>

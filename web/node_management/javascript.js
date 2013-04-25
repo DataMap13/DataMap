@@ -103,8 +103,6 @@ function createActionSelect(state,ip) {
 
 function requestAction(request) {
 
-	alert("Requesting: " + request);
-
 	require(["dojo/_base/xhr"], function(xhr) {
 	
 		xhr.get({

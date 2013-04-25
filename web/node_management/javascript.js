@@ -33,6 +33,7 @@ function getStatus() {
 				
 				header_row.insertCell(header_row.cells.length).innerHTML = "ID";
 				header_row.insertCell(header_row.cells.length).innerHTML = "IP Address";
+				header_row.insertCell(header_row.cells.length).innerHTML = "Location";
 				header_row.insertCell(header_row.cells.length).innerHTML = "State";
 				header_row.insertCell(header_row.cells.length).innerHTML = "Action";
 				
@@ -51,6 +52,8 @@ function getStatus() {
 					
 					row.insertCell(row.cells.length).innerHTML = data[i]['id'];
 					row.insertCell(row.cells.length).innerHTML = data[i]['ip'];
+					
+					row.insertCell(row.cells.length).innerHTML = data[i]['lat'] + " " + data[i]['long'];
 					
 					var state_cell = row.insertCell(row.cells.length)
 					state_cell.innerHTML = data[i]['state'];

@@ -31,7 +31,8 @@ def handle_hello(conn,addr):
 # Handler for Name Exchange messages from Colleciton Nodes
 def handle_name(conn,addr,msg):
 	global collection_nodes, collection_nodes_lock
-	name = msg.replace(NAME_MSG_PREFIX, "")
+	print msg.replace(NAME_MSG_PREFIX, "").split("|")
+	name,lat,long = msg.replace(NAME_MSG_PREFIX, "").split("|")
 	collection_nodes_lock.acquire()
 	if (not addr[0] in collection_nodes.keys()):
 		logging.warn("Received name message \"" + name + "\" from " + addr[0] + ", but address does not exist. Sending NACK message")
@@ -39,6 +40,8 @@ def handle_name(conn,addr,msg):
 	else:
 		logging.info("Received name \"" + name + "\" from " + addr[0])
 		collection_nodes[addr[0]]["name"] = name
+		collection_nodes[addr[0]]["lat"] = lat
+		collection_nodes[addr[0]]["long"] = long
 		conn.send(ACK_MSG)
 	collection_nodes_lock.release()
 
@@ -59,7 +62,7 @@ def handle_status_request(conn):
 	collection_nodes_lock.acquire()
 	reply = "\n"
 	for node in collection_nodes.keys():
-		reply += node + "|" + collection_nodes[node]["name"]
+		reply += node + "|" + collection_nodes[node]["name"] + "|" + collection_nodes[node]["lat"] + "|" + collection_nodes[node]["long"]
 		if (collection_nodes[node]["state"] == STATE_ERROR):
 			reply += "|" + STATE_ERROR + ":" + collection_nodes[node]["error"]
 		else:

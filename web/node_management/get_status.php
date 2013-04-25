@@ -27,7 +27,9 @@ foreach (preg_split("/\n/",$response) as $line) {
 	$nodes[] = array(
 		"ip" => $vals[0],
 		"id" => $vals[1],
-		"state" => $vals[2]
+		"lat" => $vals[2],
+		"long" => $vals[3],
+		"state" => $vals[4]
 	);
 }
 

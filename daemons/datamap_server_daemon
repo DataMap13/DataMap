@@ -72,7 +72,7 @@ def handle_status_request(conn):
 # Handler for Start Command Messages
 def handle_start_stop_remove_command(conn,msg,prefix,node_msg):
 	global collection_nodes, collection_nodes_lock
-	nodes = set(msg.replace(prefix,"").split())
+	nodes = list(set(msg.replace(prefix,"").split()))
 	collection_nodes_lock.acquire()
 	for node in nodes:
 		if not (node in collection_nodes.keys() or node == "all"):

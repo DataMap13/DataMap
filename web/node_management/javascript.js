@@ -110,6 +110,8 @@ function requestAction(request) {
 		});
 		
 	});
+	
+	getStatus();
 
 }
 

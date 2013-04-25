@@ -1,4 +1,13 @@
 
+var checkboxes = Array();
+
+var h_checkbox = document.createElement("input");
+h_checkbox.type = "checkbox";
+h_checkbox.onchange = function() {
+	for (var i = 0; i < checkboxes.length; i++)
+		checkboxes[i].checked = h_checkbox.checked;
+};
+
 function getStatus() {
 
 	require(["dojo/_base/xhr"], function(xhr) {
@@ -19,26 +28,37 @@ function getStatus() {
 				
 				header = table.createTHead();
 				var header_row = header.insertRow(0);
-				header_row.insertCell(0).innerHTML = "ID";
-				header_row.insertCell(1).innerHTML = "IP Address";
-				header_row.insertCell(2).innerHTML = "State";
-				header_row.insertCell(3).innerHTML = "Action";
+				
+				header_row.insertCell(header_row.cells.length).appendChild(h_checkbox);
+				
+				header_row.insertCell(header_row.cells.length).innerHTML = "ID";
+				header_row.insertCell(header_row.cells.length).innerHTML = "IP Address";
+				header_row.insertCell(header_row.cells.length).innerHTML = "State";
+				header_row.insertCell(header_row.cells.length).innerHTML = "Action";
 				
 				body = table.createTBody();
 				for (var i = 0; i < data.length; i++) {
 				
 					var row = body.insertRow(i);
 					
-					row.insertCell(0).innerHTML = data[i]['id'];
-					row.insertCell(1).innerHTML = data[i]['ip'];
+					var checkbox_cell = row.insertCell(row.cells.length);
+					if (checkboxes[i] == null) {
+						checkboxes[i] = document.createElement("input");
+						checkboxes[i].type = "checkbox";
+					}
+					checkboxes[i].value = data[i]['ip']
+					checkbox_cell.appendChild(checkboxes[i]);
 					
-					var state_cell = row.insertCell(2)
+					row.insertCell(row.cells.length).innerHTML = data[i]['id'];
+					row.insertCell(row.cells.length).innerHTML = data[i]['ip'];
+					
+					var state_cell = row.insertCell(row.cells.length)
 					state_cell.innerHTML = data[i]['state'];
 					if (data[i]['state'].match('ERROR'))
 						data[i]['state'] = "ERROR";
 					state_cell.className = data[i]['state'];
 					
-					var action_cell = row.insertCell(3)
+					var action_cell = row.insertCell(row.cells.length)
 					action_cell.appendChild(createActionSelect(data[i]['state'],data[i]['ip']));
 					
 				}
@@ -83,6 +103,8 @@ function createActionSelect(state,ip) {
 
 function requestAction(request) {
 
+	alert("Requesting: " + request);
+
 	require(["dojo/_base/xhr"], function(xhr) {
 	
 		xhr.get({
@@ -90,5 +112,17 @@ function requestAction(request) {
 		});
 		
 	});
+
+}
+
+function requestActionSelected(action) {
+
+	var request = action + " ";
+	
+	for (var i = 0; i < checkboxes.length; i++)
+		if (checkboxes[i].checked)
+			request += checkboxes[i].value + " ";
+			
+	requestAction(request);
 
 }

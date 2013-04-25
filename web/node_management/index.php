@@ -11,6 +11,14 @@ require "../common/top.php";
 	<button onclick="requestAction('stop all');">Stop All Nodes</button>
 </p>
 
-<div id="status_table_area">Loading...</span>
+<p>
+	<div id="status_table_area">Loading...</div>
+</p>
+
+<p>
+	<button onclick="requestActionSelected('start')">Start Selected Nodes</button>
+	<button onclick="requestActionSelected('stop')">Stop Selected Nodes</button>
+	<button onclick="requestActionSelected('remove')">Remove Selected Nodes</button>
+</p>
 
 <?php require "../common/bottom.php"; ?>

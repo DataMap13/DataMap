@@ -31,7 +31,6 @@ def handle_hello(conn,addr):
 # Handler for Name Exchange messages from Colleciton Nodes
 def handle_name(conn,addr,msg):
 	global collection_nodes, collection_nodes_lock
-	print msg.replace(NAME_MSG_PREFIX, "").split("|")
 	name,lat,long = msg.replace(NAME_MSG_PREFIX, "").split("|")
 	collection_nodes_lock.acquire()
 	if (not addr[0] in collection_nodes.keys()):

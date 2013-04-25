@@ -92,7 +92,8 @@ class HelloThread(StoppableThread):
 				state = STATE_CONNECTED
 				state_lock.release()
 				logging.debug("State: " + state)
-				result = send_and_get_ack(get_config("server_addr"), int(get_config("server_port")), NAME_MSG_PREFIX + get_config("node_id"))
+				result = send_and_get_ack(get_config("server_addr"), int(get_config("server_port")),
+					NAME_MSG_PREFIX + get_config("node_id") + "|" + get_config("latitude") + "|" + get_config("longitude"))
 				if (result == None):
 					last_heartbeat = time.time()
 					logging.info("Successfully exchanged name with central server. Awaiting Instructions...")

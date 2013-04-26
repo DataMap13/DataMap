@@ -1,6 +1,8 @@
 <?php
 
-$connection = mysqli_connect("localhost","datamap13","seniordesign13","network_data");
+require("../common/config.php");
+
+$connection = mysqli_connect($config['server_addr'], $config['db_username'], $config['db_password'], $config['db_name']);
 
 if (mysqli_connect_errno($connection)) {
 	echo "Failed to connect to MySQL: " . mysqli_connect_error();

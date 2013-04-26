@@ -40,6 +40,7 @@ server_items = [
 	["node_port", "Collection Node(s) Port", PORT_REGEX, DEFAULT_NODE_PORT],
 	["control_port", "Control Port", PORT_REGEX, DEFAULT_CONTROL_PORT],
 	["db_port", "Database Port", PORT_REGEX, DEFAULT_DB_PORT],
+	["db_name", "Database Name", ".+", DEFAULT_DB_NAME],
 	["db_username", "Database Username", ".+", None],
 	["db_password", "Database Password", ".+", None],
 	["web_folder", "Web Server Location", PATH_REGEX, DEFAULT_WEB_PATH]

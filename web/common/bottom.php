@@ -1,7 +1,8 @@
-
+			</div>
+			
+			<div id="footer">&nbsp;</div>
+		
 		</div>
-
-		<br style="clear:both;" />
 
 	</body>
 	

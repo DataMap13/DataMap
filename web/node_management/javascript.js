@@ -25,6 +25,7 @@ function getStatus() {
 				}	
 			
 				var table = document.createElement('table');
+				table.id = "node_status_table";
 				
 				header = table.createTHead();
 				var header_row = header.insertRow(0);

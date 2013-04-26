@@ -1,44 +1,68 @@
-body {
-	border: 2px solid #000000;
+body,html {
+	margin: 0px;
+	padding: 0px;
+	color: black;
+	background: White;
 }
 
-a {
-	text-decoration: none;
+#wrap {
+	width:1000px;
+	margin: 0 auto;
+	background: DarkGray;
+	border: 2px solid Black;
 }
 
-.title {
+#title {
 	font-size: 75px;
-	background-color: #000000;
+	background-color: Black;
 	padding: 25px;
 	color: #11AA22;
 }
 
-.main_menu {
-	display: inline-block;
-	background-color: #AAAAAA;
+#menu {
+	background: Gray;
+	float: left;
+	width: 200px;
 	font-size: 20px;
 	font-weight: bold;
-	height: 100%;
-	vertical-align: top;
-	border-right: 2px solid black;
-	border-bottom: 1px solid black;
 }
 
-.main_menu_item {
+#menu_list {
+	list-style-type: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+.menu_item {
 	padding: 20px;
-	color: black;
 	text-decoration: none;
 	border-bottom: 1px solid black;
 }
 
-.page_body {
-	display: inline-block;
-	padding: 20px;
+.menu_link {
+	color: black;
+	text-decoration: none;
 }
 
-.page_title {
+#page_content {
+	background: White;
+	float: right;
+	width: 758px;
+	min-height: 500px;
+	padding: 15px 20px;
+	border-left: 2px solid black;
+}
+
+#page_title {
+	margin-top: 0px;
 	font-size: 50px;
 	margin-bottom: 20px;
+	font-weight: normal;
+}
+
+#footer {
+	clear: both;
+	background: Black;
 }
 
 table {
@@ -71,4 +95,8 @@ td {
 
 .ERROR {
 	background-color: red;
+}
+
+#node_management_content {
+	margin-left: 20px;
 }

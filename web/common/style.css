@@ -56,6 +56,7 @@ body,html {
 	min-height: 500px;
 	padding: 15px 20px;
 	border-left: 2px solid black;
+	min-width: 1000px;
 }
 
 #page_title {
@@ -104,4 +105,8 @@ td {
 
 #node_management_content {
 	margin-left: 20px;
+}
+
+#chart_area {
+	height: 500px;
 }

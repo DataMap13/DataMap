@@ -6,9 +6,8 @@ body,html {
 }
 
 #wrap {
-	width:1000px;
 	margin: 0 auto;
-	background: DarkGray;
+	background: White;
 	border: 2px solid Black;
 }
 
@@ -19,10 +18,17 @@ body,html {
 	color: #11AA22;
 }
 
+#drexel_logo {
+	float: right;
+	height: 125px;
+	position: relative;
+	top: -20px;
+	right: -10px;
+}
+
 #menu {
 	background: Gray;
 	float: left;
-	width: 200px;
 	font-size: 20px;
 	font-weight: bold;
 }
@@ -46,8 +52,7 @@ body,html {
 
 #page_content {
 	background: White;
-	float: right;
-	width: 758px;
+	float: left;
 	min-height: 500px;
 	padding: 15px 20px;
 	border-left: 2px solid black;

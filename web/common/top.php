@@ -17,7 +17,10 @@ require("config.php");
 	
 		<div id="wrap">
 			
-			<div id="title">DataMap</div>
+			<div id="title">
+				DataMap
+				<img id="drexel_logo" src="../art/drexel-logo-white.png" />
+			</div>
 			
 			<div id="menu">
 				<ul id="menu_list">

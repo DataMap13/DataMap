@@ -35,8 +35,8 @@ install: $(INSTALL_TARGET)
 install-node:
 	ln -sf $(CURDIR)/vermont/vermont /bin/
 	ln -sf $(CURDIR)/vermont/db_config.xml /bin/vermont_config.xml
-	ln -sf $(CURDIR)/scripts/start_vermont /bin/
-	ln -sf $(CURDIR)/scripts/stop_vermont /bin/
+	ln -sf $(CURDIR)/scripts/start_capture /bin/
+	ln -sf $(CURDIR)/scripts/stop_capture /bin/
 
 install-server:
 	cp /etc/mysql/my.cnf /etc/mysql/my.cnf.orig
@@ -65,8 +65,8 @@ uninstall: $(UNINSTALL_TARGET)
 uninstall-node:
 	rm -f /bin/vermont
 	rm -f /bin/vermont_config.xml
-	rm -f /bin/start_vermont
-	rm -f /bin/stop_vermont
+	rm -f /bin/start_capture
+	rm -f /bin/stop_capture
 	rm -f /bin/vermont_config.xml.tmp
 
 uninstall-server:

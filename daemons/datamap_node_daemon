@@ -37,7 +37,7 @@ def handle_heartbeat(conn):
 def handle_start(conn):
 	global state, state_lock
 	logging.info("Received start command. Starting vermont")
-	subprocess.call("start_vermont &", shell=True)
+	subprocess.call("start_capture &", shell=True)
 	logging.info("Vermont started")
 	state_lock.acquire()
 	state = STATE_COLLECTING
@@ -49,7 +49,7 @@ def handle_start(conn):
 def handle_stop(conn):
 	global state, state_lock
 	logging.info("Received stop command. Stopping vermont")
-	subprocess.call("stop_vermont", shell=True)
+	subprocess.call("stop_capture", shell=True)
 	logging.info("Vermont Stopped")
 	state_lock.acquire()
 	state = STATE_CONNECTED

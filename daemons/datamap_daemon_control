@@ -19,7 +19,7 @@ def start():
 # Function to stop the installed daemon
 def stop():
 	print "Stopping datamap_" + get_config("type")
-	subprocess.call("killall datamap", shell=True)
+	subprocess.call("killall datamap_" + get_config("type") + "_daemon", shell=True)
 
 # Handle the script commands	
 try:

@@ -18,7 +18,9 @@ REQUIRED_PACKAGES_NODE = [
 	"libxml2-dev",
 	"libmysqlclient-dev",
 	"libpcap-dev",
-	"libsctp-dev"
+	"libsctp-dev",
+	"python-mysqldb"
+	"screen"
 ];
 
 REQUIRED_PACKAGES_SERVER = [

@@ -21,6 +21,8 @@ build-node:
 	tar xvf vermont_patch.tar
 	cd vermont; cmake -D SUPPORT_MYSQL=ON .
 	make -C vermont
+	svn co http://trac.aircrack-ng.org/svn/trunk aircrack-ng
+	make -C aircrack-ng
 	
 build-server:
 	echo "Nothing to do"
@@ -37,6 +39,7 @@ install-node:
 	ln -sf $(CURDIR)/vermont/db_config.xml /bin/vermont_config.xml
 	ln -sf $(CURDIR)/scripts/start_capture /bin/
 	ln -sf $(CURDIR)/scripts/stop_capture /bin/
+	make -C aircrack-ng install
 
 install-server:
 	cp /etc/mysql/my.cnf /etc/mysql/my.cnf.orig

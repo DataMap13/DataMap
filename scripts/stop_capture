@@ -1,4 +1,12 @@
 #!/bin/bash
 
+TMP_FILE=/bin/vermont_config.xml.tmp
+
+# Stop vermont
 killall vermont
 
+# Take down the monitor interface
+airmon-ng stop mon0
+
+# Remove the temporary config file
+rm -f TMP_FILE

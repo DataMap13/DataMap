@@ -8,6 +8,9 @@ killall vermont
 # Stop airodump-ng
 screen -S airodump -X quit
 
+# Stop the encrypted network parser
+killall df3_data_parser.py
+
 # Take down the monitor interface
 airmon-ng stop mon0
 

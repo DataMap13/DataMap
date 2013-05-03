@@ -16,6 +16,9 @@ done
 airmon-ng stop mon0 # Ensures that we will start monitoring through mon0
 airmon-ng start wlan0
 
+# Start the encrypted network parser
+df3_data_parser.py /tmp/cap-01.csv dragonfly3 &
+
 # Start airodump-ng
 rm -f /tmp/cap-01.*
 screen -S airodump -d -m airodump-ng -t OPN -t WPA2 -w /tmp/cap  mon0

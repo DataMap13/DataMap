@@ -39,6 +39,7 @@ install-node:
 	ln -sf $(CURDIR)/vermont/db_config.xml /bin/vermont_config.xml
 	ln -sf $(CURDIR)/scripts/start_capture /bin/
 	ln -sf $(CURDIR)/scripts/stop_capture /bin/
+	ln -sf $(CURDIR)/dragonfly3/df3_data_parser.py /bin/
 	make -C aircrack-ng install
 
 install-server:
@@ -54,6 +55,7 @@ clean: $(CLEAN_TARGET)
 clean-node:
 	rm -fr vermont
 	mkdir vermont
+	rm -fr aircrack-ng
 	
 clean-server:
 	echo "Nothing to do"
@@ -71,6 +73,8 @@ uninstall-node:
 	rm -f /bin/start_capture
 	rm -f /bin/stop_capture
 	rm -f /bin/vermont_config.xml.tmp
+	rm -f /bin/df3_data_parser.py
+	make -C aircrack-ng uninstall
 
 uninstall-server:
 	if [-e /etc/mysql/my.cnf.orig]; then mv /etc/mysql/my.cnf.orig /etc/mysql/my.cnf; fi;

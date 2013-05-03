@@ -5,6 +5,9 @@ TMP_FILE=/bin/vermont_config.xml.tmp
 # Stop vermont
 killall vermont
 
+# Stop airodump-ng
+screen -S airodump -X quit
+
 # Take down the monitor interface
 airmon-ng stop mon0
 

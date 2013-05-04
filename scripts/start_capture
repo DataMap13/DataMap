@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. /bin/.datamap_config
+
 VERMONT_CONFIG_FILE=/bin/vermont_config.xml
 TMP_FILE=/bin/vermont_config.xml.tmp
 
@@ -17,7 +19,7 @@ airmon-ng stop mon0 # Ensures that we will start monitoring through mon0
 airmon-ng start wlan0
 
 # Start the encrypted network parser
-df3_data_parser.py /tmp/cap-01.csv dragonfly3 &
+df3_data_parser.py /tmp/cap-01.csv $wpa2_essid &
 
 # Start airodump-ng
 rm -f /tmp/cap-01.*

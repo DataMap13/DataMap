@@ -4,6 +4,9 @@ import os
 import MySQLdb as mdb
 import sys
 
+sys.path.append("/bin")
+from datamap_daemon_common import *
+
 '''
 README: to use:
 You must have the mysql package for Python installed:
@@ -92,18 +95,18 @@ if ".csv" not in sys.argv[1]:
 
 read_file = sys.argv[1]
 
-addr = "129.25.28.81"
-user = "datamap13"
-passwd = "seniordesign13"
-schema = "network_data"
+addr = get_config("server_addr")
+user = get_config("db_username")
+passwd = get_config("db_password")
+schema = get_config("db_name")
+target_network = get_config("wpa2_essid")
 window_num = 0
-target_network = "dragonfly3"
 cant_open = True
 is_initial = True
 
 
 ##### wait until the file we are trying to read exists ######
-print os.path.exists(read_file)
+#print os.path.exists(read_file)
 while (cant_open):
     try:
         file_to_read = open(read_file,'r')

@@ -102,15 +102,23 @@ function updateGraph() {
 				});
 				
 				document.getElementById("chart_area").innerHTML = "";
-				var chart = new Chart("chart_area");
+				var chart = new Chart("chart_area", {
+					title: "Network Traffic"
+				});
 				chart.setTheme(theme);
 				
 				chart.addPlot("default", {
 					type: "StackedAreas"
 				});
 				
-				chart.addAxis("x");
-				chart.addAxis("y", { vertical: true });
+				chart.addAxis("x", {
+					title: "Time (s)",
+					titleOrientation: "away"
+				});
+				chart.addAxis("y", {
+					vertical: true,
+					title: "Traffic Volume (Bytes)"
+				});
 				
 				chart.addSeries("Data1", new StoreSeries(store, {}, "bytes"));
 				

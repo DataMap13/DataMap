@@ -5,6 +5,8 @@ import sys
 import threading
 import time
 
+print sys.path
+
 from datamap_daemon_common import *
 
 # Node State
@@ -115,7 +117,7 @@ class VermontCheckThread(StoppableThread):
 	def loop(self):
 		global state, state_lock, error, error_lock
 		state_lock.acquire()
-		if (state == STATE_COLLECTING):
+		if (state == STATE_COLLECTING | state == STATE_ERROR):
 			process = subprocess.Popen("ps -fe | grep 'vermont -f' | grep -v grep", shell=True, stdout=subprocess.PIPE)
 			result = process.stdout.read()
 			process.stdout.close()
@@ -126,8 +128,10 @@ class VermontCheckThread(StoppableThread):
 				error_lock.acquire()
 				error = "vermont unexpectedly exited, check logs for details"
 				error_lock.release()
+			else:
+				state = STATE_COLLECTING
 		state_lock.release()
-		time.sleep(HEARTBEAT_INT)			
+		time.sleep(HEARTBEAT_INT)		
 	def uninit(self):
 		pass
 			

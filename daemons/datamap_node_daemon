@@ -5,6 +5,8 @@ import sys
 import threading
 import time
 
+print sys.path
+
 from datamap_daemon_common import *
 
 # Node State
@@ -37,7 +39,7 @@ def handle_heartbeat(conn):
 def handle_start(conn):
 	global state, state_lock
 	logging.info("Received start command. Starting vermont")
-	subprocess.call("start_vermont &", shell=True)
+	subprocess.call("start_capture &", shell=True)
 	logging.info("Vermont started")
 	state_lock.acquire()
 	state = STATE_COLLECTING
@@ -49,7 +51,7 @@ def handle_start(conn):
 def handle_stop(conn):
 	global state, state_lock
 	logging.info("Received stop command. Stopping vermont")
-	subprocess.call("stop_vermont", shell=True)
+	subprocess.call("stop_capture", shell=True)
 	logging.info("Vermont Stopped")
 	state_lock.acquire()
 	state = STATE_CONNECTED
@@ -115,7 +117,7 @@ class VermontCheckThread(StoppableThread):
 	def loop(self):
 		global state, state_lock, error, error_lock
 		state_lock.acquire()
-		if (state == STATE_COLLECTING):
+		if (state == STATE_COLLECTING | state == STATE_ERROR):
 			process = subprocess.Popen("ps -fe | grep 'vermont -f' | grep -v grep", shell=True, stdout=subprocess.PIPE)
 			result = process.stdout.read()
 			process.stdout.close()
@@ -126,8 +128,10 @@ class VermontCheckThread(StoppableThread):
 				error_lock.acquire()
 				error = "vermont unexpectedly exited, check logs for details"
 				error_lock.release()
+			else:
+				state = STATE_COLLECTING
 		state_lock.release()
-		time.sleep(HEARTBEAT_INT)			
+		time.sleep(HEARTBEAT_INT)		
 	def uninit(self):
 		pass
 			

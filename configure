@@ -30,7 +30,8 @@ node_items = [
 	["db_name", "Database Name", ".+", DEFAULT_DB_NAME],
 	["db_username", "Database Username", ".+", None],
 	["db_password", "Database Password", ".+", None],
-	["interval", "Capture Interval (in ms)", "\\d+", "100"]
+	["interval", "Capture Interval (in ms)", "\\d+", "100"],
+	["wpa2_essid", "Target WPA2 Network (or \"None\")", "\w{0,32}", None]
 ];
 
 # Configuration Items just for the Central Server

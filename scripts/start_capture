@@ -1,0 +1,29 @@
+#!/bin/bash
+
+. /bin/.datamap_config
+
+VERMONT_CONFIG_FILE=/bin/vermont_config.xml
+TMP_FILE=/bin/vermont_config.xml.tmp
+
+# Populate the vermont config file with values from our config file
+cp $VERMONT_CONFIG_FILE $TMP_FILE
+cat /bin/.datamap_config | while read line
+do
+	name=`echo $line | sed s/=.*//`
+	val=`echo $line | sed s/.*=//`
+	sed -i s/\{$name\}/$val/ $TMP_FILE
+done
+
+# Set up the monitor interface
+airmon-ng stop mon0 # Ensures that we will start monitoring through mon0
+airmon-ng start wlan0
+
+# Start the encrypted network parser
+df3_data_parser.py /tmp/cap-01.csv $wpa2_essid &
+
+# Start airodump-ng
+rm -f /tmp/cap-01.*
+screen -S airodump -d -m airodump-ng -t OPN -t WPA2 -w /tmp/cap  mon0
+
+# Start vermont
+vermont -f /bin/vermont_config.xml.tmp $@

@@ -21,6 +21,8 @@ build-node:
 	tar xvf vermont_patch.tar
 	cd vermont; cmake -D SUPPORT_MYSQL=ON .
 	make -C vermont
+	svn co http://trac.aircrack-ng.org/svn/trunk aircrack-ng
+	make -C aircrack-ng
 	
 build-server:
 	echo "Nothing to do"
@@ -35,8 +37,10 @@ install: $(INSTALL_TARGET)
 install-node:
 	ln -sf $(CURDIR)/vermont/vermont /bin/
 	ln -sf $(CURDIR)/vermont/db_config.xml /bin/vermont_config.xml
-	ln -sf $(CURDIR)/scripts/start_vermont /bin/
-	ln -sf $(CURDIR)/scripts/stop_vermont /bin/
+	ln -sf $(CURDIR)/scripts/start_capture /bin/
+	ln -sf $(CURDIR)/scripts/stop_capture /bin/
+	ln -sf $(CURDIR)/dragonfly3/df3_data_parser.py /bin/
+	make -C aircrack-ng install
 
 install-server:
 	cp /etc/mysql/my.cnf /etc/mysql/my.cnf.orig
@@ -51,6 +55,7 @@ clean: $(CLEAN_TARGET)
 clean-node:
 	rm -fr vermont
 	mkdir vermont
+	rm -fr aircrack-ng
 	
 clean-server:
 	echo "Nothing to do"
@@ -65,9 +70,11 @@ uninstall: $(UNINSTALL_TARGET)
 uninstall-node:
 	rm -f /bin/vermont
 	rm -f /bin/vermont_config.xml
-	rm -f /bin/start_vermont
-	rm -f /bin/stop_vermont
+	rm -f /bin/start_capture
+	rm -f /bin/stop_capture
 	rm -f /bin/vermont_config.xml.tmp
+	rm -f /bin/df3_data_parser.py
+	make -C aircrack-ng uninstall
 
 uninstall-server:
 	if [-e /etc/mysql/my.cnf.orig]; then mv /etc/mysql/my.cnf.orig /etc/mysql/my.cnf; fi;

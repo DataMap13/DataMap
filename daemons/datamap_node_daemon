@@ -117,7 +117,7 @@ class VermontCheckThread(StoppableThread):
 	def loop(self):
 		global state, state_lock, error, error_lock
 		state_lock.acquire()
-		if (state == STATE_COLLECTING | state == STATE_ERROR):
+		if (state == STATE_COLLECTING || state == STATE_ERROR):
 			process = subprocess.Popen("ps -fe | grep 'vermont -f' | grep -v grep", shell=True, stdout=subprocess.PIPE)
 			result = process.stdout.read()
 			process.stdout.close()

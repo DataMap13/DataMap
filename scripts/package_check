@@ -19,7 +19,7 @@ REQUIRED_PACKAGES_NODE = [
 	"libmysqlclient-dev",
 	"libpcap-dev",
 	"libsctp-dev",
-	"python-mysqldb"
+	"python-mysqldb",
 	"screen"
 ];
 

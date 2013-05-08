@@ -123,7 +123,7 @@ con = mdb.connect(addr, user, passwd, schema);
 #### create table ####
 with con:
     cur = con.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS "+table_name+"(Window_Num INT, Station_MAC CHAR(17), Power INT, Num_Packets INT, BSSID CHAR(17), Probed_ESSIDs VARCHAR(256), Millis_Time DOUBLE)")
+    cur.execute("CREATE TABLE IF NOT EXISTS "+table_name+"(Node_Id INT, Window_Num INT, Station_MAC CHAR(17), Power INT, Num_Packets INT, BSSID CHAR(17), Probed_ESSIDs VARCHAR(256), Millis_Time DOUBLE)")
 
 
 
@@ -166,7 +166,7 @@ while True:
         for this_entry in this_windows_entries:
             try: # we can't be sure that an access point we just saw was seen last time around -- better check and be safe
                 prev_num_packets = last_windows_mac_address_dictionary[this_entry.entry[0]]
-                print "last packets: %s vs. current packets: %s -- for AP: %s" % (str(prev_num_packets),str(this_entry.entry[2]),str(this_entry.entry[0]))
+                #print "last packets: %s vs. current packets: %s -- for AP: %s" % (str(prev_num_packets),str(this_entry.entry[2]),str(this_entry.entry[0]))
                 delta_packets = int(this_entry.entry[2]) - prev_num_packets
                 this_windows_entries[i] = this_entry.replace_num_packets(str(delta_packets))
             except KeyError:
@@ -181,8 +181,8 @@ while True:
             #    VALUES("+str(window_num)+", '"+this_entry.entry[0]+"', "+this_entry.entry[1]+", "+this_entry.entry[2]+", '"+this_entry.entry[3]+"', \
             #    '"+this_entry.entry[4]+"', '"+str(this_entry.entry[5])+"')"
             #print sql_query
-            cur.execute("INSERT INTO "+table_name+"(Window_Num, Station_MAC, Power, Num_Packets, BSSID, Probed_ESSIDs, Millis_Time) \
-                VALUES("+str(window_num)+", '"+this_entry.entry[0]+"', "+this_entry.entry[1]+", "+this_entry.entry[2]+", '"+this_entry.entry[3]+"', \
+            cur.execute("INSERT INTO "+table_name+"(Node_Id,Window_Num, Station_MAC, Power, Num_Packets, BSSID, Probed_ESSIDs, Millis_Time) \
+                VALUES("+get_config('node_id')+", "+str(window_num)+", '"+this_entry.entry[0]+"', "+this_entry.entry[1]+", "+this_entry.entry[2]+", '"+this_entry.entry[3]+"', \
                 '"+this_entry.entry[4]+"', '"+str(this_entry.entry[5])+"')")
     file_to_read.seek(0)
     window_num += 1

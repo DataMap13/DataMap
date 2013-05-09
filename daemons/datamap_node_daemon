@@ -79,6 +79,7 @@ class HelloThread(StoppableThread):
 		global last_heartbeat, last_heartbeat_lock, state, state_lock
 		last_heartbeat_lock.acquire()
 		if (time.time()-last_heartbeat > NODE_HEARTBEATS_TIMEOUT*HEARTBEAT_INT):
+			last_heartbeat_lock.release()
 			logging.info("Heartbeat message not received for long time. Sending hello message")
 			state_lock.acquire()
 			state = STATE_DISCONNECTED
@@ -86,7 +87,9 @@ class HelloThread(StoppableThread):
 			state_lock.release()
 			result = send_and_get_ack(get_config("server_addr"), int(get_config("server_port")), HELLO_MSG)
 			if (result == None):
+				last_heartbeat_lock.acquire()
 				last_heartbeat = time.time()
+				last_heartbeat_lock.release()
 				logging.info("Successfully connected to central server")
 				state_lock.acquire()
 				state = STATE_CONNECTED
@@ -95,13 +98,16 @@ class HelloThread(StoppableThread):
 				result = send_and_get_ack(get_config("server_addr"), int(get_config("server_port")),
 					NAME_MSG_PREFIX + get_config("node_id") + "|" + get_config("latitude") + "|" + get_config("longitude"))
 				if (result == None):
+					last_heartbeat_lock.acquire()
 					last_heartbeat = time.time()
+					last_heartbeat_lock.release()
 					logging.info("Successfully exchanged name with central server. Awaiting Instructions...")
 				else:
 					logging.error("Name exchange with central server failed: " + result)
 			else:
 				logging.error("Hello with central server failed: " + result)
-		last_heartbeat_lock.release()
+		else:
+			last_heartbeat_lock.release()
 		time.sleep(HEARTBEAT_INT)
 	def uninit(self):
 		pass

@@ -98,7 +98,9 @@ def handle_start_stop_remove_command(conn,msg,prefix,node_msg):
 			del collection_nodes[node]
 		else:
 			logging.info("Sending " + node_msg + " message to " + node)
+			collection_nodes_lock.release()
 			result = send_and_get_ack(node, int(get_config("node_port")), node_msg)
+			collection_nodes_lock.acquire()
 			if (result == None):
 				if (node_msg == START_MSG):
 					collection_nodes[node]["state"] = STATE_COLLECTING

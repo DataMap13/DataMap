@@ -106,8 +106,6 @@ class StoppableThread(threading.Thread):
 class ConnectionHandlerThread(StoppableThread):
 	def __init__(self, port, callback):
 		StoppableThread.__init__(self, self.init, self.loop, self.uninit)
-		self.addr = re.search("inet addr:\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
-			subprocess.check_output("ifconfig eth0", shell=True)).groups()[0]
 		self.port = port
 		self.callback = callback
 	def init(self):
@@ -116,6 +114,8 @@ class ConnectionHandlerThread(StoppableThread):
 		success = False
 		while not success:
 			try:
+				self.addr = re.search("inet addr:\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
+					subprocess.check_output("ifconfig eth0", shell=True)).groups()[0]
 				self.listen_socket.bind((self.addr, self.port))
 				success = True
 			except Exception as err:

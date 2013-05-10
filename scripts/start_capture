@@ -19,11 +19,11 @@ airmon-ng stop mon0 # Ensures that we will start monitoring through mon0
 airmon-ng start wlan0
 
 # Start the encrypted network parser
-df3_data_parser.py /tmp/cap-01.csv $wpa2_essid &
+df3_data_parser.py /dev/shm/cap-01.csv $wpa2_essid &
 
 # Start airodump-ng
-rm -f /tmp/cap-01.*
-screen -S airodump -d -m airodump-ng -t OPN -t WPA2 -w /tmp/cap  mon0
+rm -f /dev/shm/cap-01.*
+screen -S airodump -d -m airodump-ng -t OPN -t WPA2 -w /dev/shm/cap  mon0
 
 # Start vermont
 vermont -f /bin/vermont_config.xml.tmp $@

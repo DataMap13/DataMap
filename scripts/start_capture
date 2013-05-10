@@ -26,5 +26,4 @@ rm -f /tmp/cap-01.*
 screen -S airodump -d -m airodump-ng -t OPN -t WPA2 -w /tmp/cap  mon0
 
 # Start vermont
-sleep 5
 vermont -f /bin/vermont_config.xml.tmp $@

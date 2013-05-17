@@ -20,7 +20,8 @@ REQUIRED_PACKAGES_NODE = [
 	"libpcap-dev",
 	"libsctp-dev",
 	"python-mysqldb",
-	"screen"
+	"screen",
+	"subversion"
 ];
 
 REQUIRED_PACKAGES_SERVER = [

@@ -34,6 +34,11 @@ require("config.php");
 							Data Analysis
 						</li>
 					</a>
+					<a href="../map/" class="menu_link">
+						<li class="menu_item">
+							Map
+						</li>
+					</a>
 				</ul>
 			</div>
 			

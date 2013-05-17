@@ -21,7 +21,8 @@ REQUIRED_PACKAGES_NODE = [
 	"libsctp-dev",
 	"python-mysqldb",
 	"screen",
-	"subversion"
+	"subversion",
+	"libssl-dev"
 ];
 
 REQUIRED_PACKAGES_SERVER = [

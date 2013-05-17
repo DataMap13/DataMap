@@ -34,3 +34,6 @@ pip-log.txt
 
 aircrack-ng
 
+# Apache server password files
+.htaccess
+.htpasswd

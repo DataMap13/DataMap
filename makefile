@@ -49,6 +49,8 @@ install-server:
 	mysql -e "GRANT ALL PRIVILEGES ON *.* TO '$(db_username)'@'%' IDENTIFIED BY '$(db_password)' WITH GRANT OPTION;" -p
 	service mysql restart
 	ln -sf $(CURDIR)/web $(web_folder)
+	sed s/\$$USER/$(db_username)/ web/htaccess > web/.htaccess
+	htpasswd -bc web/.htpasswd $(db_username) $(db_password)
 
 clean: $(CLEAN_TARGET)
 

@@ -1,0 +1,5 @@
+AuthName "Please login to access the DataMap Management Console."
+AuthType Basic
+AuthUserFile /var/www/datamap/.htpasswd
+AuthGroupFile /dev/null
+require user $USER

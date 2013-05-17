@@ -140,14 +140,13 @@ class HeartbeatThread(StoppableThread):
 		logging.debug("Current Collection Nodes: " + str(collection_nodes))
 		for node in collection_nodes.keys():
 			logging.debug("Sending heartbeat message to " + node)
-			if (collection_nodes[node]["state"] != STATE_DISCONNECTED):
-				result = send_and_get_ack_response(node, int(get_config("node_port")), HEARTBEAT_MSG)
-				if (not result.startswith("Fail:")):
-					logging.debug("Heartbeat with " + node + " successful")
-					collection_nodes[node]["state"] = result
-				else:
-					logging.info("Heartbeat with node " + node + " failed: " + result + ". Assuming disconnected.")
-					collection_nodes[node]["state"] = STATE_DISCONNECTED
+			result = send_and_get_ack_response(node, int(get_config("node_port")), HEARTBEAT_MSG)
+			if (not result.startswith("Fail:")):
+				logging.debug("Heartbeat with " + node + " successful")
+				collection_nodes[node]["state"] = result
+			else:
+				logging.info("Heartbeat with node " + node + " failed: " + result + ". Assuming disconnected.")
+				collection_nodes[node]["state"] = STATE_DISCONNECTED
 		collection_nodes_lock.release()
 		time.sleep(HEARTBEAT_INT)
 	def uninit(self):

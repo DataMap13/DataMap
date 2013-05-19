@@ -1,0 +1,17 @@
+The graphing program used is "matplotlib" -- a matlab like plotting library for python.
+
+To install this library (if one finds the need to install it), run:
+
+-$ sudo apt-get install python-matplotlib
+
+Python's mysqldb libaray must be installed as well, so that Python can talk to the db:
+
+-$ sudo apt-get install python-mysqldb
+
+(The astute reader will point out that the above two commands may be merged into a single apt-get install command.
+The non-astute reader will run them as separate commands, and waste as much time as I did writing this parenthetical note.)
+
+To learn about matplotlib, visit its website, "matplotlib.org", and/or visit the beginner tutorial: "http://www.loria.fr/~rougier/teaching/matplotlib/"
+From matplotlib.org, it is possible to get to its documentation.
+
+

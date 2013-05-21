@@ -18,14 +18,6 @@ while($row = mysqli_fetch_array($results)) {
 	$rows[] = $row;
 }
 
-$rows2 = array();
-$count = 0;
-foreach ($rows as $row) {
-	if ($count >= 39) break;
-	$rows2[] = $row;
-	$count++;
-}
-
-print json_encode($rows2);
+print json_encode($rows);
 	
 ?>

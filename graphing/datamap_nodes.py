@@ -38,7 +38,7 @@ class DGNode:
         self.destIPs.add(destIP)
         self.srcPorts.add(srcPort)
         self.destPort.add(destPort)
-        self.protocols.add(protocols)
+        self.protocols.add(protocol)
         self.num_packets = num_packets
         self.num_bytes = num_bytes
         self.tcpControlBits = tcpControlBits

@@ -147,7 +147,7 @@ while keep_graphing:
             with connection:
                 # get data from db 
                 the_dg_cursor = connection.cursor()
-                query = "select * from "+table_name+" limit "+str(dg_start)+","+str(num_rows) # ask for data
+                query = "select * from "+dg_table_name+" limit "+str(dg_start)+","+str(num_rows) # ask for data
                 num_rows_retrieved = the_dg_cursor.execute(query)
                 dg_start += num_rows_retrieved # update starting index for next query
                 print "retrieved '"+str(num_rows_retrieved)+"' from "+dg_table_name
@@ -287,27 +287,31 @@ while keep_graphing:
 
     for dg_window in dg_windows:
         for node in dg_window:
-            dg_data_per_node[node.node_id][node.absolute_window_number] = [len(node.srcIPs), len(node.destIPs), node.srcPorts = set() node.destPorts = set() node.protocols = set() node.srcIPs.add(srcIP) node.destIPs.add(destIP) node.srcPorts.add(srcPort) node.destPorts.add(destPort) node.protocols.add(protocol) node.num_packets = num_packets node.num_bytes = num_bytes node.tcpControlBits = tcpControlBits
+            dg_data_per_node[node.node_id][node.absolute_window_number] = [len(node.srcIPs), len(node.destIPs), len(node.srcPorts), len(node.destPorts), len(node.protocols), node.num_packets, node.num_bytes, node.tcpControlBits]
 
     # Next we input '0' for any window that we don't have information from a collection node for, and turn the dictionaries into lists
-    df3_pre_corr_lists = []
+    dg_pre_corr_lists = []
     for i in range(0, num_collection_nodes): # need to initialize the lists 
-        df3_pre_corr_lists.append([])
+        dg_pre_corr_lists.append([0,0,0,0,0,0,0,0])
     current_node_id = -1
-    for node in df3_data_per_node:
+    for node in dg_data_per_node:
         current_node_id += 1 # in the above step, the indidces of the dictionaries in the list was the same as the node_id
         for i in range(0,correlation_window_size): 
             try:
-                df3_pre_corr_lists[current_node_id].append(node[i])
+                t = dg_pre_corr_lists[current_node_id]
+                n = node[i]
+                p = [ t[0]+n[0], t[1]+n[1],t[2]+n[2],t[3]+n[3],t[4]+n[4],t[5]+n[5],t[6]+n[6],t[7]+n[7] ]
+                dg_pre_corr_lists[current_node_id] = p
             except KeyError:
-                # this means that there wasn't a window for this node at this time. So, we set the value to '0'... if we didn't it would be hard to calculate the correlation between nodes.
-                df3_pre_corr_lists[current_node_id].append(0)
+                # this means that there wasn't a window for this node at this time. So, we skip it 
+                pass
+                #dg_pre_corr_lists[current_node_id] = [0,0,0,0,0,0,0,0]
 
 
     ####################### TEST PRINT START ######################
-    print "lists pre-correlation:"
+    print "lists pre-correlation (FOR DREXELGUEST):"
     i = 0
-    for node in df3_pre_corr_lists:
+    for node in dg_pre_corr_lists:
         print "node #"+str(i)+": "+str(node)
         i += 1
     ####################### TEST PRINT END ######################
@@ -316,18 +320,18 @@ while keep_graphing:
     # This matrix has columns 'vector_1', 'vector_2', 'vector_3', etc. in that order, and has rows in the same order starting with 'vector_1' at top.
     #       This means that in the returned matrix, [0,0] will have a correlation of '1' because it is 'vector_1' measured against itself.
     #           HOWEVER, if any of the the input vectors had only 1 distinct number (all '0', all '1', etc.) then that will cause 'NaN' to be returned.
-    current_corrs = np.corrcoef(df3_pre_corr_lists)
-    print current_corrs
+    current_dg_corrs = np.corrcoef(dg_pre_corr_lists)
+    print "DREXELGUEST correlations: "+current_dg_corrs
 
     # To fix this, we must run numpy.nan_2_num(correlation_matrix). This will 'fix' the issues. NOTE that I don't know how it does this, nor how good an idea it is to use this function. I just know that it removes the 'nan' from the correlation matrix.
-    no_nan_corrs = np.nan_to_num(current_corrs)
-    print no_nan_corrs
+    no_nan_dg_corrs = np.nan_to_num(current_dg_corrs)
+    print no_nan_dg_corrs
 
     # After getting the correlation matrix and fixing it, we find the average correlation between a node and all other nodes, for each node. Once we have that, we plot.
     i = 0
-    corrs_to_plot = []
+    dg_corrs_to_plot = []
     current_total_corr = 0
-    for node in no_nan_corrs: # each row will contain the correlation values for node 'i'
+    for node in no_nan_dg_corrs: # each row will contain the correlation values for node 'i'
         print "node: "+str(node)
         j = 0
         current_total_corr = 0
@@ -338,21 +342,21 @@ while keep_graphing:
                 continue
             current_total_corr += this_corr
             j += 1
-        corrs_to_plot.append(current_total_corr/j)
+        dg_corrs_to_plot.append(current_total_corr/j)
         i += 1
 
-    df3_correlations.append(corrs_to_plot)
-    print "df3_correlations: "+str(df3_correlations)
-    df3_corrs_transposed = []
-    num_df3_corrs = len(df3_correlations)
+    dg_correlations.append(dg_corrs_to_plot)
+    print "dg_correlations: "+str(dg_correlations)
+    dg_corrs_transposed = []
+    num_dg_corrs = len(dg_correlations)
     for i in range(0,num_collection_nodes):
         temp = []
-        for j in range(0,num_df3_corrs):
-            temp.append(df3_correlations[j][i])
-        df3_corrs_transposed.append(temp)
-    print "df3_corrs_transposed: "+str(df3_corrs_transposed)
-    x_vals = arange(0,len(df3_correlations), 1)
-    print "x_vals: "+str(x_vals)
+        for j in range(0,num_dg_corrs):
+            temp.append(dg_correlations[j][i])
+        dg_corrs_transposed.append(temp)
+    print "dg_corrs_transposed: "+str(dg_corrs_transposed)
+    dg_x_vals = arange(0,len(dg_correlations), 1)
+    print "dg_x_vals: "+str(dg_x_vals)
 
 
 
@@ -362,8 +366,6 @@ while keep_graphing:
     ====== update plots ======
     ##########################
     '''
-
-
 
     # update plot
     clf()
@@ -379,13 +381,16 @@ while keep_graphing:
     title('DataMap - Average Node Correlation')
     ylabel('Damped oscillation')
 
-    '''
-    t3 = arange(0.0, 2.0, 0.01)
 
-    subplot(212)
-    plot(t3, cos(2*pi*t3), 'r.')
+    dg_plot_axes = subplot(212)
+    dg_plot_axes.set_autoscalex_on(False)
+    dg_plot_axes.set_xlim(dg_window_range[0],dg_window_range[1])
+    #df3_plot_axes.set_xlim([0,10])
+    dg_plot_axes.set_autoscaley_on(False)
+    dg_plot_axes.set_ylim([-1,1])
+    ###################### NOTE: this plot statement will have to be manually updated depending upon the number of collection nodes
+    m = plot(dg_x_vals,dg_corrs_transposed[0], '-', dg_x_vals, dg_corrs_transposed[1], '-', dg_x_vals, dg_corrs_transposed[2], '-', dg_x_vals, dg_corrs_transposed[3], '-', dg_x_vals, dg_corrs_transposed[4],'-')
     grid(True)
-    '''
 
     xlabel('Window Number (1 Window = '+str(window_size)+' Second(s))')
     ylabel('Correlation Value')
@@ -394,20 +399,26 @@ while keep_graphing:
     #raw_input()
 
     df3_current_data_points += 1
+    dg_current_data_points += 1
     # Once we update the plot, we MUST make sure to pop the first value off of the 'df3_correlations' list: df3_correlations.pop(0)
     # And do the same with df3_windows
     df3_windows.pop(0)
+    dg_windows.pop(0)
     if df3_current_data_points > df3_max_data_points:
         window_range[0] += 1
         window_range[1] += 1
-        #df3_correlations.pop(0)
+       #df3_correlations.pop(0)
         df3_current_data_points -= 1
+    if dg_current_data_points > dg_max_data_points:
+        dg_window_range[0] += 1
+        dg_window_range[1] += 1
+        dg_current_data_points -= 1
 
-    print "number of correlation windows: "+str(len(df3_correlations))
 
         # Then we loop back around, and grab one more window. This is done by setting 'num_windows_to_get' to '1', so that the data-gathering loop only executes one time. Alternatively, if we want to wait longer between correlation values, the num_windws_to_get could be left alone (default is '30' at the time of this comment), or set somehwere in the middle.
 
     num_windows_to_get = 1
+    num_dg_windows_to_get = 1
 
 
 

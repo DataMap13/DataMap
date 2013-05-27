@@ -2,18 +2,40 @@
 
 class DF3Node:
 
-    def __init__(self, node_id, window_num, num_packets):
+    def __init__(self, node_id, window_size, num_packets, startMillis, absolute_window_number):
         self.node_id = node_id
-        self.window_num = window_num
+        self.startMillis = startMillis
+        self.endMillis = startMillis + (window_size*1000)
         self.num_packets = num_packets
- 
-    def merge(self, not_self):
-        self.num_packets += self.num_packets
+        self.absolute_window_number = absolute_window_number
 
-    def __eq__(self, not_self):
-        if self.node_id == not_self.node_id and self.window_num == not_self.window_num:
-            return True
-        return False
+
+    def merge(self, not_self, differentiate_between_windows=True):
+        self.num_packets += not_self.num_packets
+        if differentiate_between_windows and (not_self.absolute_window_number != self.absolute_window_number):
+            print "Bad bad bad... self == "+str(self.win)+" != not_self "+str(not_self.win)
+
+    '''
+    When trying to combine different windows, 'differentiate_between_windows' should be false.
+    When trying to create separate windows (based upon time), 'differentiate_between_windows' need not be called,
+    but if it is, it should be 'True' (which it is by default).
+    '''
+    def __eq__(self, not_self, differentiate_between_windows=True):
+        if (differentiate_between_windows):
+            if self.node_id == not_self.node_id and self.startMillis <=  not_self.startMillis and self.endMillis > not_self.startMillis :
+                return True
+            else:
+                return False
+        else:
+            if self.node_id == not_self.node_id:
+                return True
+            else:
+                return False
+
+    def __str__(self):
+        return "[ node_id => "+str(self.node_id)+", num_packets => "+str(self.num_packets)+", startMillis => "+str(self.startMillis)+", endMillis => "+str(self.endMillis)+"]"
+
+   
 
 
 '''
@@ -25,10 +47,10 @@ class DGNode:
     other than 'window_size', which is the length in seconds that this node will compile data for, 
     everything comes directly from the row returned from the database. 
     '''
-    def __init__(self, window_size, node_id, firstSwitchedMillis, srcIP, destIP, srcPort, destPort, protocol, num_packets, num_bytes, tcpControlBits):
+    def __init__(self, window_size, node_id, firstSwitchedMillis, srcIP, destIP, srcPort, destPort, protocol, num_packets, num_bytes, tcpControlBits, absolute_window_number):
         self.node_id = node_id
         self.startMillis = firstSwitchedMillis
-        self.endMillis = self.startMillis + window_size # we CANNOT merge any nodes with this node that have a 'startMillis' greater than OR equal to this node's endMillis. 
+        self.endMillis = self.startMillis + (window_size * 1000) # we CANNOT merge any nodes with this node that have a 'startMillis' greater than OR equal to this node's endMillis. 
         self.srcIPs = set()
         self.destIPs = set()
         self.srcPorts = set()
@@ -37,26 +59,41 @@ class DGNode:
         self.srcIPs.add(srcIP)
         self.destIPs.add(destIP)
         self.srcPorts.add(srcPort)
-        self.destPort.add(destPort)
+        self.destPorts.add(destPort)
         self.protocols.add(protocol)
         self.num_packets = num_packets
         self.num_bytes = num_bytes
         self.tcpControlBits = tcpControlBits
+        self.absolute_window_number = absolute_window_number
  
     def merge(self, not_self):
         self.srcIPs.update(not_self.srcIPs)
         self.destIPs.update(not_self.destIPs)
         self.srcPorts.update(not_self.srcPorts)
-        self.destPort.update(not_self.destPorts)
+        self.destPorts.update(not_self.destPorts)
         self.protocols.update(not_self.protocols)
         self.num_packets += not_self.num_packets
         self.num_bytes += not_self.num_bytes
         self.tcpControlBits += not_self.tcpControlBits
 
-    def __eq__(self, not_self):
-        if self.node_id == not_self.node_id and self.startMillis <=  not_self.startMillis and self.endMillis > not_self.startMillis :
-            return True
+    '''
+    When trying to combine different windows, 'differentiate_between_windows' should be false.
+    When trying to create separate windows (based upon time), 'differentiate_between_windows' need not be called,
+    but if it is, it should be 'True' (which it is by default).
+    '''
+    def __eq__(self, not_self, differentiate_between_windows=True):
+        if (differentiate_between_windows):
+            if self.node_id == not_self.node_id and self.startMillis <=  not_self.startMillis and self.endMillis > not_self.startMillis :
+                return True
+            return False
+        else:
+            if self.node_id == not_self.node_id:
+                return True
+            return False
         return False
+
+    def __str__(self):
+        return "[ node_id => "+str(self.node_id)+", startMillis => "+str(self.startMillis)+", endMillis => "+str(self.endMillis)+", srcIPs => "+str(self.srcIPs)+", destIPs => "+str(self.destIPs)+", srcPorts => "+str(self.srcPorts)+", destPorts => "+str(self.destPorts)+", protocols => "+str(self.protocols)+", num_packets => "+str(self.num_packets)+", total bytes => "+str(self.num_bytes)+", num_tcpControlBits "+str(self.num_tcpControlBits)+"]"
 
 '''
 Database rows:
@@ -74,6 +111,26 @@ will have one figure per node, showing: # distinct sourceIPs, # distinct destint
 can also plot average volume 
 
 '''
+
+'''
+a NodeList holds w
+'''
+class NodeList:
+
+    def __init__(self):
+        self.nodes = []
+
+    def add(self,node):
+        self.nodes.append(node)
+
+
+'''
+a Network holds a list of NodeLists.
+'''
+class Network:    
+    
+    def __init__(self):
+        pass
 
 
 if __name__ == '__main__':

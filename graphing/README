@@ -11,7 +11,15 @@ Python's mysqldb libaray must be installed as well, so that Python can talk to t
 (The astute reader will point out that the above two commands may be merged into a single apt-get install command.
 The non-astute reader will run them as separate commands, and waste as much time as I did writing this parenthetical note.)
 
+Numpy must also be installed, but I am under the impression that installing matplotlib will install it. If not:
+
+-$ sudo apt-get install python-numpy
+
 To learn about matplotlib, visit its website, "matplotlib.org", and/or visit the beginner tutorial: "http://www.loria.fr/~rougier/teaching/matplotlib/"
 From matplotlib.org, it is possible to get to its documentation.
 
+NOTE: If you get the following error:
 
+_tkinter.TclError: couldn't connect to display "localhost:10.0"
+
+This is because the X session timed out. I tried modifing the ~/.ssh/config file in a number of ways, and just couldn't get it to stop timing out. The only solution I had was to log out and then back in.

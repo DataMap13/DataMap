@@ -44,7 +44,7 @@ connection = mdb.connect(addr, user, passwd, schema);
 #query = "select * from "+table_name+" limit "+str(num_rows) # from start of tabl
 #query_2 = "select * from myTable limit 5,18446744073709551615" # to get all rows after n'th row, use large number
 
-dg_table_name = "network_data.h_20130516_19_0"
+dg_table_name = "network_data.h_20130508_20_1" 
 table_name = "network_data.dragonfly3_20130508"
 num_rows = 100 
 num_collection_nodes = 5
@@ -70,7 +70,7 @@ df3_nodes = []
 dg_data = [] # drexel guest data
 dg_nodes = []
 df3_windows = [] # will be a list of df3_nodes 
-dg_windows []
+dg_windows = []
 df3_data_per_node = [] 
 dg_data_per_node = []
 df3_pre_corr_lists = []
@@ -321,7 +321,7 @@ while keep_graphing:
     #       This means that in the returned matrix, [0,0] will have a correlation of '1' because it is 'vector_1' measured against itself.
     #           HOWEVER, if any of the the input vectors had only 1 distinct number (all '0', all '1', etc.) then that will cause 'NaN' to be returned.
     current_dg_corrs = np.corrcoef(dg_pre_corr_lists)
-    print "DREXELGUEST correlations: "+current_dg_corrs
+    print "DREXELGUEST correlations: "+str(current_dg_corrs)
 
     # To fix this, we must run numpy.nan_2_num(correlation_matrix). This will 'fix' the issues. NOTE that I don't know how it does this, nor how good an idea it is to use this function. I just know that it removes the 'nan' from the correlation matrix.
     no_nan_dg_corrs = np.nan_to_num(current_dg_corrs)

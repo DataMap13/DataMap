@@ -16,20 +16,19 @@ matplotlib.use('TkAgg') # needed????
 
 ion() # turn on interactive mode
 show() # show the window
+
+DELAY = 1 # this is the time delay between graph updates. default is one second.
+
 '''
 Database rows:
 =====================
 for df3 data: [Node_id, Window_Num, Station_MAC, Power, Num_Packets, BSSID, Proved_ESSIDs, Millis_Time]
     -> important indices: 0 -> node_id, 1 -> window_num, 4 -> num_packets, 7 -> millis_time
 
-will have one line per node, and will plot by window_num on x-axsis, taking sum of packets that node saw. Also can graph amount of traffic though each access point if we want.
 =====================
 for drexel guest data: [nodeId, latitude, longitude, firstSwitchedMillis, srcIP, dstIP, srcPort, dstPort, proto, pkts, bytes, tcpControlBits]
     -> important indices: 0 -> node_id, 3 -> firstSwitchedMillis, 4 -> srcIP, 5 -> dstIP, 6 -> srcPort, 7 -> dstPort, 8 -> proto, 9 -> num_packets, 10 -> bytes, 11 - tcpControlBits 
 
-will have one figure per node, showing: # distinct sourceIPs, # distinct destintationIPs, # distinct source ports, # distinct dest ports, # distinct protocols, number of packets, number of bytes, and number of tcp control bits -- each plotted in their own subplots, one data point per time window
-
-can also plot average volume 
 '''
 
 addr = "129.25.28.81" # NOTE to someone that can explain this to me: why can't we connect via 127.0.0.1?
@@ -56,8 +55,8 @@ start = 0
 dg_start = 0
 window_size = 1 # seconds. this window size determines the granularity
 correlation_window_size = 30 # start with using 30 windows (30 seconds).
-num_windows_to_get = 30
-num_dg_windows_to_get = 30
+num_windows_to_get = correlation_window_size 
+num_dg_windows_to_get = correlation_window_size 
 window_range = [0,df3_max_data_points]
 dg_window_range = [0,dg_max_data_points]
 
@@ -379,7 +378,7 @@ while keep_graphing:
     l = plot(x_vals,df3_corrs_transposed[0], '-', x_vals, df3_corrs_transposed[1], '-', x_vals,df3_corrs_transposed[2], '-', x_vals, df3_corrs_transposed[3], '-', x_vals, df3_corrs_transposed[4],'-')
     grid(True)
     title('DataMap - Average Node Correlation')
-    ylabel('Damped oscillation')
+    ylabel('Correlation Coefficient')
 
 
     dg_plot_axes = subplot(212)
@@ -392,10 +391,10 @@ while keep_graphing:
     m = plot(dg_x_vals,dg_corrs_transposed[0], '-', dg_x_vals, dg_corrs_transposed[1], '-', dg_x_vals, dg_corrs_transposed[2], '-', dg_x_vals, dg_corrs_transposed[3], '-', dg_x_vals, dg_corrs_transposed[4],'-')
     grid(True)
 
-    xlabel('Window Number (1 Window = '+str(window_size)+' Second(s))')
-    ylabel('Correlation Value')
+    xlabel('Window Number (1 Window = '+str(correlation_window_size)+' Second(s))')
+    ylabel('Correlation Coefficient')
     draw()
-    #time.sleep(.5)
+    time.sleep(DELAY)
     #raw_input()
 
     df3_current_data_points += 1

@@ -378,7 +378,7 @@ while keep_graphing:
     l = plot(x_vals,df3_corrs_transposed[0], '-', x_vals, df3_corrs_transposed[1], '-', x_vals,df3_corrs_transposed[2], '-', x_vals, df3_corrs_transposed[3], '-', x_vals, df3_corrs_transposed[4],'-')
     grid(True)
     title('DataMap - Average Node Correlation')
-    ylabel('Correlation Coefficient')
+    ylabel('Correlation Coefficient\n(Dragonfly3)')
 
 
     dg_plot_axes = subplot(212)
@@ -392,7 +392,7 @@ while keep_graphing:
     grid(True)
 
     xlabel('Window Number (1 Window = '+str(correlation_window_size)+' Second(s))')
-    ylabel('Correlation Coefficient')
+    ylabel('Correlation Coefficient\n(DrexelGuest)')
     draw()
     time.sleep(DELAY)
     #raw_input()

@@ -16,31 +16,22 @@ endif
 build: $(BUILD_TARGET)
 
 build-node:
-	git submodule init
-	git submodule update
-	tar xvf vermont_patch.tar
-	cd vermont; cmake -D SUPPORT_MYSQL=ON .
-	make -C vermont
-	svn co http://trac.aircrack-ng.org/svn/trunk aircrack-ng
-	make -C aircrack-ng
+	@echo "Nothing to do"
 	
 build-server:
 	echo "Nothing to do"
 
 install: $(INSTALL_TARGET)
-	ln -sf $(CURDIR)/daemons/datamap_daemon_control /etc/init.d/datamap
-	ln -sf $(CURDIR)/daemons/datamap_daemon_common.py /bin/
-	ln -sf $(CURDIR)/daemons/datamap_$(type)_daemon /bin/
-	ln -sf $(CURDIR)/daemons/.datamap_config /bin/
+	install -m 0755 daemons/datamap_daemon_control /etc/init.d/datamap
+	install -m 0755 daemons/datamap_daemon_common.py /bin
+	install -m 0755 daemons/datamap_$(type)_daemon /bin
+	install -m 0755 daemons/.datamap_config /bin
 	update-rc.d datamap defaults 97
 
 install-node:
-	ln -sf $(CURDIR)/vermont/vermont /bin/
-	ln -sf $(CURDIR)/vermont/db_config.xml /bin/vermont_config.xml
-	ln -sf $(CURDIR)/scripts/start_capture /bin/
-	ln -sf $(CURDIR)/scripts/stop_capture /bin/
-	ln -sf $(CURDIR)/dragonfly3/df3_data_parser.py /bin/
-	make -C aircrack-ng install
+	install -m 0755 scripts/start_capture /bin
+	install -m 0755 scripts/stop_capture /bin
+	install -m 0755 dragonfly3/df3_data_parser.py /bin
 
 install-server:
 	cp /etc/mysql/my.cnf /etc/mysql/my.cnf.orig
@@ -55,10 +46,8 @@ install-server:
 clean: $(CLEAN_TARGET)
 
 clean-node:
-	rm -fr vermont
-	mkdir vermont
-	rm -fr aircrack-ng
-	
+	@echo "Nothing to do"
+
 clean-server:
 	echo "Nothing to do"
 	
@@ -70,13 +59,9 @@ uninstall: $(UNINSTALL_TARGET)
 	update-rc.d -f datamap remove
 
 uninstall-node:
-	rm -f /bin/vermont
-	rm -f /bin/vermont_config.xml
 	rm -f /bin/start_capture
 	rm -f /bin/stop_capture
-	rm -f /bin/vermont_config.xml.tmp
 	rm -f /bin/df3_data_parser.py
-	make -C aircrack-ng uninstall
 
 uninstall-server:
 	if [-e /etc/mysql/my.cnf.orig]; then mv /etc/mysql/my.cnf.orig /etc/mysql/my.cnf; fi;

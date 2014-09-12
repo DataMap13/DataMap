@@ -1,0 +1,608 @@
+From 0c192c5d8f9e8e8a5dc627800ce27d163d92218d Mon Sep 17 00:00:00 2001
+From: "Bradford D. Boyle" <bradford@drexel.edu>
+Date: Fri, 12 Sep 2014 16:36:09 -0400
+Subject: [PATCH] DataMap13 patches to vermont source
+
+---
+ CMakeLists.txt                                    |   14 ++--
+ db_config.xml                                     |   90 +++++++++++++++++++++
+ src/modules/ipfix/IpfixDbCommon.hpp               |    4 +
+ src/modules/ipfix/IpfixDbWriter.cpp               |   46 ++++++++---
+ src/modules/ipfix/IpfixDbWriter.hpp               |   12 ++-
+ src/modules/ipfix/IpfixDbWriterCfg.cpp            |   32 +++++++-
+ src/modules/ipfix/IpfixDbWriterCfg.h              |    4 +
+ src/modules/ipfix/aggregator/BaseAggregator.h     |    5 +-
+ src/modules/ipfix/aggregator/HashtableBuckets.h   |    1 +
+ src/modules/ipfix/aggregator/PacketAggregator.cpp |    2 +-
+ src/modules/ipfix/aggregator/PacketHashtable.cpp  |   25 ++++--
+ src/modules/ipfix/aggregator/PacketHashtable.h    |    9 ++-
+ src/modules/packet/Observer.cpp                   |   11 ++-
+ src/modules/packet/Packet.h                       |    2 +-
+ 14 files changed, 218 insertions(+), 39 deletions(-)
+ create mode 100644 db_config.xml
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 77951e7..6fc2524 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -297,20 +297,20 @@ ENDIF (MYSQL_FOUND AND SUPPORT_MYSQL)
+ OPTION(SUPPORT_POSTGRESQL "Enable PostgreSQL support" OFF)
+ IF (SUPPORT_POSTGRESQL)
+ 	FIND_PACKAGE(PostgreSQL REQUIRED)
+-	IF (NOT PostgreSQL_FOUND)
++	IF (NOT POSTGRESQL_FOUND)
+ 		MESSAGE(FATAL_ERROR "Could not find PostgreSQL libraries.")
+-	ENDIF (NOT PostgreSQL_FOUND)
++	ENDIF (NOT POSTGRESQL_FOUND)
+ ENDIF (SUPPORT_POSTGRESQL)
+-IF (PostgreSQL_FOUND)
++IF (POSTGRESQL_FOUND)
+ 	MESSAGE(STATUS "Found PostgreSQL libraries")
+ 	ADD_DEFINITIONS(-DPG_SUPPORT_ENABLED)
+-	INCLUDE_DIRECTORIES(${PostgreSQL_INCLUDE_DIRS})
++	INCLUDE_DIRECTORIES(${POSTGRESQL_INCLUDE_DIR})
+ 	TARGET_LINK_LIBRARIES(vermont
+-		${PostgreSQL_LIBRARIES}
++		${POSTGRESQL_LIBRARIES}
+ 	)
+-ELSE (PostgreSQL_FOUND)
++ELSE (POSTGRESQL_FOUND)
+ 	REMOVE_DEFINITIONS(-DPG_SUPPORT_ENABLED)
+-ENDIF (PostgreSQL_FOUND)
++ENDIF (POSTGRESQL_FOUND)
+ 
+ ### Oracle
+ 
+diff --git a/db_config.xml b/db_config.xml
+new file mode 100644
+index 0000000..b03a735
+--- /dev/null
++++ b/db_config.xml
+@@ -0,0 +1,90 @@
++<ipfixConfig>
++
++	<observer id="1">
++		<filename>/dev/shm/cap-01.cap</filename>
++		<pcap_filter>ip</pcap_filter>
++		<next>2</next>
++	</observer>
++
++	<packetAggregator id="2">
++		<rule>
++			<flowKey>
++				<ieName>sourceIPv4Address</ieName>
++			</flowKey>
++			<flowKey>
++				<ieName>destinationIPv4Address</ieName>
++			</flowKey>
++			<flowKey>
++				<ieName>protocolIdentifier</ieName>
++			</flowKey>
++			<flowKey>
++				<ieName>sourceTransportPort</ieName>
++			</flowKey>
++			<flowKey>
++				<ieName>destinationTransportPort</ieName>
++			</flowKey>
++			<nonFlowKey>
++				<ieName>flowStartMilliSeconds</ieName>
++			</nonFlowKey>
++			<nonFlowKey>
++				<ieName>flowEndMilliSeconds</ieName>
++			</nonFlowKey>
++			<nonFlowKey>
++				<ieName>octetDeltaCount</ieName>
++			</nonFlowKey>
++			<nonFlowKey>
++				<ieName>packetDeltaCount</ieName>
++			</nonFlowKey>
++			<nonFlowKey>
++				<ieName>tcpControlBits</ieName>
++			</nonFlowKey>
++		</rule>
++		<pollInterval unit="msec">{interval}</pollInterval>
++		<next>3</next>
++	</packetAggregator>
++
++	<anonRecord id="3">
++		<anonField>
++			<anonIE>
++				<ieName>sourceIPv4Address</ieName>
++			</anonIE>
++			<anonMethod>CryptoPan</anonMethod>
++			<anonParam>0xB92A327F6AF02694A10ABF7FC8A4CFE8AEB8A4A14325EC1E7A3D1E648D50E260</anonParam>
++		</anonField>
++		<anonField>
++			<anonIE>
++				<ieName>destinationIPv4Address</ieName>
++			</anonIE>
++			<anonMethod>CryptoPan</anonMethod>
++			<anonParam>0xB92A327F6AF02694A10ABF7FC8A4CFE8AEB8A4A14325EC1E7A3D1E648D50E260</anonParam>
++		</anonField>
++		<next>4</next>
++	</anonRecord>
++
++	<ipfixDbWriter id="4">
++		<host>{server_addr}</host>
++		<port>{db_port}</port>
++		<dbname>{db_name}</dbname>
++		<username>{db_username}</username>
++		<password>{db_password}</password>
++		<bufferrecords>1</bufferrecords>
++		<nodeId>{node_id}</nodeId>
++		<location>
++			<latitude>{latitude}</latitude>
++			<longitude>{longitude}</longitude>
++		</location>
++		<interval>{interval}</interval>
++		<columns>
++			<name>firstSwitchedMillis</name>
++			<name>srcIP</name>
++			<name>dstIP</name>
++			<name>srcPort</name>
++			<name>dstPort</name>
++			<name>proto</name>
++			<name>pkts</name>
++			<name>bytes</name>
++			<name>tcpControlBits</name>
++		</columns>
++	</ipfixDbWriter>
++
++</ipfixConfig>
+diff --git a/src/modules/ipfix/IpfixDbCommon.hpp b/src/modules/ipfix/IpfixDbCommon.hpp
+index 1d2d2b5..329d2e6 100644
+--- a/src/modules/ipfix/IpfixDbCommon.hpp
++++ b/src/modules/ipfix/IpfixDbCommon.hpp
+@@ -65,4 +65,8 @@
+ #define CN_flowStartSysUpTime	"flowStartSysUpTime"
+ #define CN_flowEndSysUpTime	"flowEndSysUpTime"
+ 
++#define CN_nodeId "nodeId"
++#define CN_latitude "latitude"
++#define CN_longitude "longitude"
++
+ #endif
+diff --git a/src/modules/ipfix/IpfixDbWriter.cpp b/src/modules/ipfix/IpfixDbWriter.cpp
+index 28fb17e..cdd9037 100644
+--- a/src/modules/ipfix/IpfixDbWriter.cpp
++++ b/src/modules/ipfix/IpfixDbWriter.cpp
+@@ -46,9 +46,9 @@ const IpfixDbWriter::Column IpfixDbWriter::identify [] = {
+ 	{CN_pkts, 		"BIGINT(20) UNSIGNED", 		0, IPFIX_TYPEID_packetDeltaCount, 0},
+ 	{CN_firstSwitched, 	"INTEGER(10) UNSIGNED", 	0, IPFIX_TYPEID_flowStartSeconds, 0}, // default value is invalid/not used for this ent
+ 	{CN_lastSwitched, 	"INTEGER(10) UNSIGNED", 	0, IPFIX_TYPEID_flowEndSeconds, 0}, // default value is invalid/not used for this entry
+-	{CN_firstSwitchedMillis, "SMALLINT(5) UNSIGNED", 	0, IPFIX_TYPEID_flowStartMilliSeconds, 0},
+-	{CN_lastSwitchedMillis, "SMALLINT(5) UNSIGNED", 	0, IPFIX_TYPEID_flowEndMilliSeconds, 0},
+-	{CN_tcpControlBits,  	"SMALLINT(5) UNSIGNED", 	0, IPFIX_TYPEID_tcpControlBits, 0},
++	{CN_firstSwitchedMillis, "BIGINT UNSIGNED", 	0, IPFIX_TYPEID_flowStartMilliSeconds, 0},
++	{CN_lastSwitchedMillis, "BIGINT UNSIGNED", 	0, IPFIX_TYPEID_flowEndMilliSeconds, 0},
++	{CN_tcpControlBits,  	"BIGINT UNSIGNED", 	0, IPFIX_TYPEID_tcpControlBits, 0},
+ 	//TODO: use enterprise number for the following extended types (Gerhard, 12/2009)
+ 	{CN_revbytes, 		"BIGINT(20) UNSIGNED", 		0, IPFIX_TYPEID_octetDeltaCount, IPFIX_PEN_reverse},
+ 	{CN_revpkts, 		"BIGINT(20) UNSIGNED", 		0, IPFIX_TYPEID_packetDeltaCount, IPFIX_PEN_reverse},
+@@ -61,6 +61,9 @@ const IpfixDbWriter::Column IpfixDbWriter::identify [] = {
+ 	{CN_exporterID, 	"SMALLINT(5) UNSIGNED", 	0, EXPORTERID, 0},
+ 	{CN_flowStartSysUpTime,	"INTEGER(10) UNSIGNED",		0, IPFIX_TYPEID_flowStartSysUpTime, 0},
+ 	{CN_flowEndSysUpTime,	"INTEGER(10) UNSIGNED",		0, IPFIX_TYPEID_flowEndSysUpTime, 0},
++	{CN_nodeId,	"INT",	0,	NODEIDID,	0},
++	{CN_latitude,	"INT",	0,	LATITUDEID,	0},
++	{CN_longitude,	"INT",	0,	LONGITUDEID,	0},
+ 	{0} // last entry must be 0
+ };
+ 
+@@ -198,7 +201,7 @@ void IpfixDbWriter::processDataDataRecord(const IpfixRecord::SourceID& sourceID,
+ 
+ 	// write to db if maxInserts is reached
+ 	if(numberOfInserts == maxInserts) {
+-		msg(MSG_DEBUG, "IpfixDbWriter: Writing buffered records to database");
++		msg(MSG_DEBUG, "IpfixDbWriter: Writing buffered records to database with statement %s", insertStatement.str().c_str());
+ 		writeToDb();
+ 		numberOfInserts = 0;
+ 	}
+@@ -362,7 +365,12 @@ string& IpfixDbWriter::getInsertString(string& row, time_t& flowstartsec, const
+ 							flowstartsec = intdata/1000;
+ 					case IPFIX_TYPEID_flowEndMilliSeconds:
+ 						// in the database the millisecond entry is counted from last second
+-						intdata %= 1000;
++						// DataMap: we are writing the full time to the database (seconds and milliseconds),
++						//	so this modulo is unwanted
++						//intdata %= 1000;
++						// However, we do want to round down to the start time of the interval in which the packet
++						//	was observed
++						intdata = (intdata / interval) * interval;
+ 						break;
+ 				}
+ 			} else if (col->enterprise==IPFIX_PEN_reverse)
+@@ -377,11 +385,22 @@ string& IpfixDbWriter::getInsertString(string& row, time_t& flowstartsec, const
+ 
+ 		DPRINTF("saw ipfix id %d in packet with intdata %llX", col->ipfixId, intdata);
+ 
+-		if(first)
++		if (first) {
++			first = false;
++		} else {
++			rowStream << ",";
++		}
++
++		if (col->ipfixId == NODEIDID) {
++			rowStream << "'" << nodeId << "'";
++		}else if (col->ipfixId == LATITUDEID) {
++			rowStream << latitude;
++		} else if (col->ipfixId == LONGITUDEID) {
++			rowStream << longitude;
++		} else {
+ 			rowStream << intdata;
+-		else
+-			rowStream << "," << intdata;
+-		first = false;
++		}
++
+ 	}
+ 
+ 	rowStream << ")";
+@@ -451,7 +470,6 @@ int IpfixDbWriter::setCurrentTable(time_t flowstartsec)
+ 		dbError = true;
+ 		return 1;
+ 	}
+-	msg(MSG_DEBUG, "IpfixDbWriter: Table %s created ", currentTable.name.c_str());
+ 
+ 	return 0;
+ }
+@@ -583,12 +601,18 @@ void IpfixDbWriter::onDataRecord(IpfixDataRecord* record)
+ IpfixDbWriter::IpfixDbWriter(const string& hostname, const string& dbname,
+ 				const string& username, const string& password,
+ 				unsigned port, uint32_t observationDomainId, unsigned maxStatements,
+-				const vector<string>& columns)
++				const int32_t nodeId_in, const int32_t latitude_in, const int32_t longitude_in,
++				const int32_t interval_in, const vector<string>& columns)
+ 	: currentExporter(NULL), numberOfInserts(0), maxInserts(maxStatements),
+ 	dbHost(hostname), dbName(dbname), dbUser(username), dbPassword(password), dbPort(port), conn(0)
+ {
+ 	int i;
+ 
++	nodeId = nodeId_in;
++	latitude = latitude_in;
++	longitude = longitude_in;
++	interval = interval_in;
++
+ 	// set default source id
+ 	srcId.exporterAddress.len = 0;
+ 	srcId.observationDomainId = observationDomainId;
+diff --git a/src/modules/ipfix/IpfixDbWriter.hpp b/src/modules/ipfix/IpfixDbWriter.hpp
+index 64b3dca..ef5905e 100644
+--- a/src/modules/ipfix/IpfixDbWriter.hpp
++++ b/src/modules/ipfix/IpfixDbWriter.hpp
+@@ -36,6 +36,9 @@
+ #include <sstream>
+ 
+ #define EXPORTERID 0
++#define NODEIDID 1001
++#define LATITUDEID 1002
++#define LONGITUDEID 1003
+ 
+ /**
+  * IpfixDbWriter powered the communication to the database server
+@@ -48,7 +51,8 @@ class IpfixDbWriter
+ 		IpfixDbWriter(const string& hostname, const string& dbname,
+ 				const string& username, const string& password,
+ 				unsigned port, uint32_t observationDomainId, unsigned maxStatements,
+-				const vector<string>& columns);
++				const int32_t nodeId, const int32_t latitude, const int32_t interval,
++				const int32_t longitude, const vector<string>& columns);
+ 		~IpfixDbWriter();
+ 
+ 		void onDataRecord(IpfixDataRecord* record);
+@@ -123,6 +127,12 @@ class IpfixDbWriter
+ 		bool equalExporter(const IpfixRecord::SourceID& a, const IpfixRecord::SourceID& b);
+ 
+ 		const static Column identify[];
++
++		int32_t nodeId;
++		int32_t latitude;
++		int32_t longitude;
++		int32_t interval;
++
+ };
+ 
+ 
+diff --git a/src/modules/ipfix/IpfixDbWriterCfg.cpp b/src/modules/ipfix/IpfixDbWriterCfg.cpp
+index 64750d9..9b91880 100644
+--- a/src/modules/ipfix/IpfixDbWriterCfg.cpp
++++ b/src/modules/ipfix/IpfixDbWriterCfg.cpp
+@@ -60,6 +60,13 @@ IpfixDbWriterCfg::IpfixDbWriterCfg(XMLElement* elem)
+ 		} else if (e->matches("observationDomainId")) {
+ 			observationDomainId = getInt("observationDomainId");
+ 		} else if (e->matches("next")) { // ignore next
++		} else if (e->matches("nodeId")) {
++			colNames.push_back("nodeId");
++			nodeId = atoi(e->getFirstText().c_str());
++		} else if (e->matches("location")) {
++			readLocation(e);
++		} else if (e->matches("interval")) {
++			interval = atoi(e->getFirstText().c_str());
+ 		} else {
+ 			msg(MSG_FATAL, "Unknown IpfixDbWriter config statement %s\n", e->getName().c_str());
+ 			continue;
+@@ -72,7 +79,6 @@ IpfixDbWriterCfg::IpfixDbWriterCfg(XMLElement* elem)
+ }
+ 
+ void IpfixDbWriterCfg::readColumns(XMLElement* elem) {
+-	colNames.clear();
+ 	XMLNode::XMLSet<XMLElement*> set = elem->getElementChildren();
+ 	for (XMLNode::XMLSet<XMLElement*>::iterator it = set.begin();
+ 	     it != set.end();
+@@ -89,6 +95,27 @@ void IpfixDbWriterCfg::readColumns(XMLElement* elem) {
+ 
+ }
+ 
++void IpfixDbWriterCfg::readLocation(XMLElement* elem) {
++	XMLNode::XMLSet<XMLElement*> set = elem->getElementChildren();
++	for (XMLNode::XMLSet<XMLElement*>::iterator it = set.begin();
++			it != set.end();
++			it++) {
++		XMLElement* e = *it;
++
++		if (e->matches("latitude")) {
++			colNames.push_back("latitude");
++			latitude = atoi((e->getFirstText()).c_str());
++		} else if (e->matches("longitude")) {
++			colNames.push_back("longitude");
++			longitude = atoi((e->getFirstText()).c_str());
++		} else {
++			msg(MSG_FATAL, "Unknown IpfixDbWriter config statement %s\n", e->getName().c_str());
++			continue;
++		}
++
++	}
++}
++
+ IpfixDbWriterCfg::~IpfixDbWriterCfg()
+ {
+ }
+@@ -96,7 +123,8 @@ IpfixDbWriterCfg::~IpfixDbWriterCfg()
+ 
+ IpfixDbWriter* IpfixDbWriterCfg::createInstance()
+ {
+-    instance = new IpfixDbWriter(hostname, dbname, user, password, port, observationDomainId, bufferRecords, colNames);
++    instance = new IpfixDbWriter(hostname, dbname, user, password, port, observationDomainId,
++		bufferRecords, nodeId, latitude, longitude, interval, colNames);
+     return instance;
+ }
+ 
+diff --git a/src/modules/ipfix/IpfixDbWriterCfg.h b/src/modules/ipfix/IpfixDbWriterCfg.h
+index 13927df..e061502 100644
+--- a/src/modules/ipfix/IpfixDbWriterCfg.h
++++ b/src/modules/ipfix/IpfixDbWriterCfg.h
+@@ -55,8 +55,12 @@ protected:
+ 	uint16_t bufferRecords;	/**< amount of records to buffer until they are written to database */
+ 	uint32_t observationDomainId;	/**< default observation domain id (overrides the one received in the records */
+ 	vector<string> colNames; /**< column names */
++	int32_t nodeId;
++	int32_t latitude, longitude;
++	int32_t interval;
+ 
+ 	void readColumns(XMLElement* elem);
++	void readLocation(XMLElement* elem);
+ 	IpfixDbWriterCfg(XMLElement*);
+ };
+ 
+diff --git a/src/modules/ipfix/aggregator/BaseAggregator.h b/src/modules/ipfix/aggregator/BaseAggregator.h
+index b812026..a986856 100644
+--- a/src/modules/ipfix/aggregator/BaseAggregator.h
++++ b/src/modules/ipfix/aggregator/BaseAggregator.h
+@@ -60,10 +60,11 @@ protected:
+ 	// events from Module
+ 	virtual void performStart();
+ 	virtual void performShutdown();
+-	
++
++	uint32_t pollInterval; /**< polling interval in milliseconds */
++
+ private:
+ 	Thread thread;
+-	uint32_t pollInterval; /**< polling interval in milliseconds */
+ 	
+ 	static void* threadWrapper(void* instance);
+ };
+diff --git a/src/modules/ipfix/aggregator/HashtableBuckets.h b/src/modules/ipfix/aggregator/HashtableBuckets.h
+index 6ef3442..3eb06c0 100644
+--- a/src/modules/ipfix/aggregator/HashtableBuckets.h
++++ b/src/modules/ipfix/aggregator/HashtableBuckets.h
+@@ -42,6 +42,7 @@ public:
+ 	uint32_t observationDomainID;
+ 	BucketListElement* listNode;
+ 	uint32_t hash;
++	suseconds_t window;
+ };
+ 
+ 
+diff --git a/src/modules/ipfix/aggregator/PacketAggregator.cpp b/src/modules/ipfix/aggregator/PacketAggregator.cpp
+index 8feb4aa..fa5387a 100644
+--- a/src/modules/ipfix/aggregator/PacketAggregator.cpp
++++ b/src/modules/ipfix/aggregator/PacketAggregator.cpp
+@@ -72,7 +72,7 @@ void PacketAggregator::receive(Packet* e)
+ BaseHashtable* PacketAggregator::createHashtable(Rule* rule, uint16_t minBufferTime,
+ 		uint16_t maxBufferTime, uint8_t hashbits)
+ {
+-	return new PacketHashtable(this, rule, minBufferTime, maxBufferTime, hashbits);
++	return new PacketHashtable(this, rule, minBufferTime, maxBufferTime, hashbits, pollInterval);
+ }
+ 
+ 
+diff --git a/src/modules/ipfix/aggregator/PacketHashtable.cpp b/src/modules/ipfix/aggregator/PacketHashtable.cpp
+index 9ada6a1..bef7dfe 100644
+--- a/src/modules/ipfix/aggregator/PacketHashtable.cpp
++++ b/src/modules/ipfix/aggregator/PacketHashtable.cpp
+@@ -34,11 +34,12 @@ using namespace InformationElement;
+ const uint32_t PacketHashtable::ExpHelperTable::UNUSED = 0xFFFFFFFF;
+ 
+ PacketHashtable::PacketHashtable(Source<IpfixRecord*>* recordsource, Rule* rule,
+-		uint16_t minBufferTime, uint16_t maxBufferTime, uint8_t hashbits)
++		uint16_t minBufferTime, uint16_t maxBufferTime, uint8_t hashbits, uint32_t interval_in)
+ 	: BaseHashtable(recordsource, rule, minBufferTime, maxBufferTime, hashbits),
+ 	snapshotWritten(false), startTime(time(0))
+ {
+ 	buildExpHelperTable();
++	interval = interval_in;
+ }
+ 
+ 
+@@ -1250,14 +1251,17 @@ void PacketHashtable::aggregateFlow(HashtableBucket* bucket, const Packet* p, bo
+  * compares if given hashtable bucket data is equal with raw packet data
+  * @returns true if equal, false if not equal
+  */
+-bool PacketHashtable::equalFlow(IpfixRecord::Data* bucket, const Packet* p)
++bool PacketHashtable::equalFlow(HashtableBucket* bucket, const Packet* p)
+ {
++
++	IpfixRecord::Data* data = bucket->data.get();
++
+ 	for (int i=0; i<expHelperTable.noKeyFields; i++) {
+ 		ExpFieldData* efd = &expHelperTable.keyFields[i];
+ 
+ 		DPRINTFL(MSG_VDEBUG, "equal for i=%u, typeid=%s, length=%u, srcpointer=%X", i, efd->typeId.toString().c_str(), efd->srcLength, p->netHeader+efd->srcIndex);
+ 		// just compare srcLength bytes, as we still have our original packet data
+-		if (memcmp(bucket+efd->dstIndex, p->netHeader+efd->srcIndex, efd->srcLength)!=0)
++		if (memcmp(data+efd->dstIndex, p->netHeader+efd->srcIndex, efd->srcLength)!=0)
+ 			return false;
+ 	}
+ 	return true;
+@@ -1268,15 +1272,18 @@ bool PacketHashtable::equalFlow(IpfixRecord::Data* bucket, const Packet* p)
+  * (for biflow aggregation)
+  * @returns true if equal, false if not equal
+  */
+-bool PacketHashtable::equalFlowRev(IpfixRecord::Data* bucket, const Packet* p)
++bool PacketHashtable::equalFlowRev(HashtableBucket* bucket, const Packet* p)
+ {
++
++	IpfixRecord::Data* data = bucket->data.get();
++
+ 	for (int i=0; i<expHelperTable.noKeyFields; i++) {
+ 		ExpFieldData* efdsrc = &expHelperTable.keyFields[i];
+ 		ExpFieldData* efddst = expHelperTable.revKeyFieldMapper[i];
+ 
+ 		DPRINTFL(MSG_VDEBUG, "equalrev for i=%u, typeid=%s, length=%u, srcpointer=%X", i, efdsrc->typeId.toString().c_str(), efdsrc->srcLength, p->netHeader+efdsrc->srcIndex);
+ 		// just compare srcLength bytes, as we still have our original packet data
+-		if (memcmp(bucket+efddst->dstIndex, p->netHeader+efdsrc->srcIndex, efdsrc->srcLength)!=0)
++		if (memcmp(data+efddst->dstIndex, p->netHeader+efdsrc->srcIndex, efdsrc->srcLength)!=0)
+ 			return false;
+ 	}
+ 	return true;
+@@ -1404,6 +1411,9 @@ void PacketHashtable::aggregatePacket(const Packet* p)
+ 		nanosleep(&req, &req);
+ 	}
+ 
++	// Determine the window in which the packet was captured
++	suseconds_t window;
++	window = ((p->timestamp.tv_sec*1000 + p->timestamp.tv_usec / 1000) / interval) * interval;
+ 
+ 	DPRINTF("PacketHashtable::aggregatePacket()");
+ 	updatePointers(p);
+@@ -1421,7 +1431,7 @@ void PacketHashtable::aggregatePacket(const Packet* p)
+ 	if (bucket != 0) {
+ 		// This slot is already used, search spill chain for equal flow
+ 		while (1) {
+-			if (equalFlow(bucket->data.get(), p)) {
++			if (equalFlow(bucket, p) && bucket->window == window) {
+ 				DPRINTF("aggregate flow in normal direction");
+ 				aggregateFlow(bucket, p, 0);
+ 				if (!bucket->forceExpiry) {
+@@ -1451,7 +1461,7 @@ void PacketHashtable::aggregatePacket(const Packet* p)
+ 		HashtableBucket* bucket = buckets[rhash];
+ 
+ 		while (bucket!=0) {
+-			if (equalFlowRev(bucket->data.get(), p)) {
++			if (equalFlowRev(bucket, p) && bucket->window == window) {
+ 				DPRINTF("aggregate flow in reverse direction");
+ 				aggregateFlow(bucket, p, 1);
+ 				if (!bucket->forceExpiry) {
+@@ -1482,6 +1492,7 @@ void PacketHashtable::aggregatePacket(const Packet* p)
+ 			statEmptyBuckets--;
+ 		}
+ 		buckets[hash]->inTable = true;
++		buckets[hash]->window = window;
+ 
+ 		if (oldflowcount) {
+ 			DPRINTFL(MSG_VDEBUG, "oldflowcount: %u", ntohl(*oldflowcount));
+diff --git a/src/modules/ipfix/aggregator/PacketHashtable.h b/src/modules/ipfix/aggregator/PacketHashtable.h
+index 8f1a751..ab8fd64 100644
+--- a/src/modules/ipfix/aggregator/PacketHashtable.h
++++ b/src/modules/ipfix/aggregator/PacketHashtable.h
+@@ -36,7 +36,8 @@ class PacketHashtable : public BaseHashtable
+ {
+ public:
+ 	PacketHashtable(Source<IpfixRecord*>* recordsource, Rule* rule,
+-			uint16_t minBufferTime, uint16_t maxBufferTime, uint8_t hashbits);
++			uint16_t minBufferTime, uint16_t maxBufferTime, uint8_t hashbits,
++			uint32_t interval_in);
+ 	virtual ~PacketHashtable();
+ 
+ 	void aggregatePacket(const Packet* p);
+@@ -161,8 +162,8 @@ private:
+ 	void aggregateField(const ExpFieldData* efd, HashtableBucket* hbucket,
+ 					    const IpfixRecord::Data* deltaData, IpfixRecord::Data* data);
+ 	void aggregateFlow(HashtableBucket* bucket, const Packet* p, bool reverse);
+-	bool equalFlow(IpfixRecord::Data* bucket, const Packet* p);
+-	bool equalFlowRev(IpfixRecord::Data* bucket, const Packet* p);
++	bool equalFlow(HashtableBucket* bucket, const Packet* p);
++	bool equalFlowRev(HashtableBucket* bucket, const Packet* p);
+ 	void createMaskedField(IpfixRecord::Data* address, uint8_t imask);
+ 	void createMaskedFields(const Packet* p);
+ 	void updatePointers(const Packet* p);
+@@ -171,6 +172,8 @@ private:
+ 	void updateBucketData(HashtableBucket* bucket);
+ 	uint32_t getDstOffset(const InformationElement::IeInfo& ietype);
+ 
++	int interval;
++
+ };
+ 
+ #endif /*PACKETHASHTABLE_H_*/
+diff --git a/src/modules/packet/Observer.cpp b/src/modules/packet/Observer.cpp
+index 54bc339..864b88e 100644
+--- a/src/modules/packet/Observer.cpp
++++ b/src/modules/packet/Observer.cpp
+@@ -260,9 +260,9 @@ void *Observer::observerThread(void *arg)
+ 			if(!pcapData) {
+ 				/* no packet data was available */
+ 				if(feof(fh))
+-				        msg(MSG_DIALOG, "Observer: reached end of file (%llu packets)", obs->processedPackets);
+-                        file_eof = true;
+-      				break;
++				        //msg(MSG_DIALOG, "Observer: reached end of file (%llu packets)", obs->processedPackets);
++                                file_eof = true;
++                                continue;
+       			}
+ 			DPRINTFL(MSG_VDEBUG, "got new packet!");
+ 			if (obs->stretchTime > 0) {
+@@ -429,7 +429,9 @@ bool Observer::prepare(const std::string& filter)
+ 		msg(MSG_DEBUG, "pcap seems to run on network %s", inet_ntoa(i_network));
+ 		msg(MSG_INFO, "pcap seems to run on netmask %s", inet_ntoa(i_netmask));
+ 	} else {
+-		captureDevice=pcap_open_offline(fileName, errorBuffer);
++		captureDevice = false;
++		while (!captureDevice)
++			captureDevice=pcap_open_offline(fileName, errorBuffer);
+ 		// check for errors
+ 		if(!captureDevice) {
+ 			msg(MSG_FATAL, "Error opening pcap file %s: %s", fileName, errorBuffer);
+@@ -628,3 +630,4 @@ std::string Observer::getStatisticsXML(double interval)
+ 	oss << "</observer>";
+ 	return oss.str();
+ }
++                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+diff --git a/src/modules/packet/Packet.h b/src/modules/packet/Packet.h
+index be8d42c..e4ab5b9 100644
+--- a/src/modules/packet/Packet.h
++++ b/src/modules/packet/Packet.h
+@@ -83,7 +83,7 @@ public:
+ 	 for Ethernet, this is 14 bytes (MAC header size).
+ 	 This constant is set via the configure script. It defaults to 14
+ 	 */
+-	static const int IPHeaderOffset=IP_HEADER_OFFSET;
++	static const int IPHeaderOffset=32;
+ 
+ 	// Transport header classifications (used in Packet::ipProtocolType)
+ 	// Note: ALL is reserved and enables bitoperations using the enums
+-- 
+1.7.10.4
+

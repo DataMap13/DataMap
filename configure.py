@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*
 
 import re
 import subprocess
@@ -71,7 +72,7 @@ else:
 
 # First, Check that we have all the packages that we need
 try:
-	subprocess.check_call("scripts/package_check " + type_text, shell=True)
+	subprocess.check_call(["scripts/package_check.py", type_text])
 except:
 	response = prompt("Would you like to contiue anyway?", "[n|N|y|Y].*", "No");
 	if (response.lower().startswith("n")):

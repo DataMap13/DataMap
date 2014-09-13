@@ -4,6 +4,8 @@ import subprocess
 import sys
 import time
 
+sys.path.append('/bin')
+
 from datamap_daemon_common import *
 
 # Determine the current location of the script (or use /etc/init.d if this is a copy run at startup)

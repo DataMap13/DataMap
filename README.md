@@ -8,23 +8,25 @@ Installation Prerequisites
 DataMap is written to run on Debian derivatives and has been successfully
 tested on Debian 7.6 (wheezy). The following packages are required for a
 DataMap collection node:
-+ make
 + cmake
-+ gcc
 + g++
++ gcc
++ iw
 + libboost-dev
-+ libboost-regex-dev
-+ libboost-thread-dev
 + libboost-filesystem-dev
++ libboost-regex-dev
 + libboost-test-dev
-+ libxml2-dev
++ libboost-thread-dev
 + libmysqlclient-dev
 + libpcap-dev
 + libsctp-dev
++ libssl-dev
++ libxml2-dev
++ make
 + python-mysqldb
 + screen
 + subversion
-+ libssl-dev
++ wireless-tools
 
 In addition to the above packages, DataMap depends on [aircrack-ng] and
 [vermont]; the steps for installing these dependencies are given below.
@@ -57,11 +59,12 @@ In addition to the above packages, DataMap depends on [aircrack-ng] and
        DataMap does not require a full install of `vermont`; the required the
        components can be installed with:
 
-            sudo install -m 0755 build/vermont db_config.xml /bin
+            sudo install -m 0755 build/vermont /bin/vermont
+            sudo install -m 0755 db_config.xml /bin/vermont_config.xml
 
         To uninstall:
 
-            sudo rm -f /bin/vermont /bin/db_config.xml /bin/db_config.xml.tmp
+            sudo rm -f /bin/vermont /bin/vermont_config.xml /bin/vermont_config.xml.tmp
 
 The following packages are required for a DataMap server:
 + make

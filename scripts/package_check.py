@@ -21,7 +21,9 @@ _required_pkgs = {
         "python-mysqldb",
         "screen",
         "subversion",
-        "libssl-dev"
+        "libssl-dev",
+        "wireless-tools",
+        "iw"
     ],
     "server": [
         "make",

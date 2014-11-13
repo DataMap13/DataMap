@@ -5,6 +5,10 @@
 VERMONT_CONFIG_FILE=/bin/vermont_config.xml
 TMP_FILE=/bin/vermont_config.xml.tmp
 
+# Location of aircrack-ng binaries
+AIRMON_NG="/usr/local/sbin/airmon-ng"
+AIRODUMP_NG="/usr/local/sbin/airodump-ng"
+
 # Populate the vermont config file with values from our config file
 cp $VERMONT_CONFIG_FILE $TMP_FILE
 cat /bin/.datamap_config | while read line
@@ -15,15 +19,15 @@ do
 done
 
 # Set up the monitor interface
-airmon-ng stop mon0 # Ensures that we will start monitoring through mon0
-airmon-ng start wlan0
+${AIRMON_NG} stop mon0 # Ensures that we will start monitoring through mon0
+${AIRMON_NG} start wlan0
 
 # Start the encrypted network parser
 df3_data_parser.py /dev/shm/cap-01.csv $wpa2_essid &
 
 # Start airodump-ng
 rm -f /dev/shm/cap-01.*
-screen -S airodump -d -m airodump-ng -t OPN -t WPA2 -w /dev/shm/cap  mon0
+screen -S airodump -d -m ${AIRODUMP_NG} -t OPN -t WPA2 -w /dev/shm/cap  mon0
 
 # Start vermont
-vermont -f /bin/vermont_config.xml.tmp $@
+vermont -f /bin/vermont_config.xml.tmp -ddd "$@" > /var/log/vermont.out.log 2> /var/log/vermont.err.log

@@ -27,7 +27,7 @@ df3_data_parser.py /dev/shm/cap-01.csv $wpa2_essid &
 
 # Start airodump-ng
 rm -f /dev/shm/cap-01.*
-screen -S airodump -d -m ${AIRODUMP_NG} -t OPN -t WPA2 -w /dev/shm/cap  mon0
+screen -S airodump -d -m ${AIRODUMP_NG} --band abg -t OPN -t WPA2 -w /dev/shm/cap  mon0
 
 # Start vermont
-vermont -f /bin/vermont_config.xml.tmp -ddd "$@" > /var/log/vermont.out.log 2> /var/log/vermont.err.log
+vermont -f /bin/vermont_config.xml.tmp -dd "$@" > /var/log/vermont.out.log 2> /var/log/vermont.err.log
